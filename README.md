@@ -1,18 +1,19 @@
-# AAMAD – AI-Assisted Multi-Agent Application Development Framework
+# BAGANA AI – Content Strategy Platform
 
-**AAMAD** is an open, production-grade framework for building, deploying, and evolving multi-agent applications using best context engineering practices.  
-It systematizes research-driven planning, modular AI agent workflows, and rapid MVP/devops pipelines for enterprise-ready AI solutions.
+**BAGANA AI** is an AI-powered platform for KOL, influencer, and content creator agencies to manage content strategy at scale. It combines **content planning**, **sentiment analysis**, and **market trend insights** so agencies can create structured multi-talent content plans, optimize messaging and engagement, and run data-driven campaigns without proportionally increasing manual workload.
 
 **Repository:** [github.com/louistherhansen/bagana-ai-conent-planer](https://github.com/louistherhansen/bagana-ai-conent-planer)
+
+This project is built using the **AAMAD** (AI-Assisted Multi-Agent Application Development) framework for context-driven, multi-agent development with CrewAI.
 
 ---
 
 ## Table of Contents
 
-- [What is AAMAD?](#what-is-aamad)
+- [About BAGANA AI](#about-bagana-ai)
 - [AAMAD phases at a glance](#aamad-phases-at-a-glance)
 - [Repository Structure](#repository-structure)
-- [How to Use the Framework](#how-to-use-the-framework)
+- [Getting Started](#getting-started)
 - [Phase 1: Define Workflow (Product Manager)](#phase-1-define-workflow-product-manager)
 - [Phase 2: Build Workflow (Multi-Agent)](#phase-2-build-workflow-multi-agent)
 - [Core Concepts](#core-concepts)
@@ -21,15 +22,16 @@ It systematizes research-driven planning, modular AI agent workflows, and rapid 
 
 ---
 
-## What is AAMAD?
+## About BAGANA AI
 
-AAMAD is a context engineering framework based on best practices in AI-assisted coding and multi-agent system development methodologies.  
-It enables teams to:
+BAGANA AI targets agency ops managers, content strategists, and campaign managers who coordinate multiple talents and campaigns. It provides:
 
-- Launch projects with autonomous or collaborative AI agents
-- Rapidly prototype MVPs with clear context boundaries
-- Use production-ready architecture/design patterns
-- Accelerate delivery, reduce manual overhead, and enable continuous iteration
+- **Structured multi-talent content plans** — Calendars, briefs, and messaging aligned to campaigns
+- **Sentiment analysis** — Tone and sentiment inputs for content and briefs
+- **Market trend insights** — Trend and market data to inform strategy
+- **Unified workflow** — One platform for planning, sentiment, and trends (no manual copy-paste across tools)
+
+Key artifacts: [Market Research (MRD)](project-context/1.define/mrd.md), [Product Requirements (PRD)](project-context/1.define/prd.md), and the [use case](Usecase.txt).
 
 ---
 
@@ -76,60 +78,35 @@ flowchart LR
 
 ## Repository Structure
 
-    aamad/
+    bagana-ai-conent-planer/
     ├─ .cursor/
-    │ ├─ agents/ # Agent persona markdown files (definitions & actions)
-    │ ├─ prompts/ # Parameterized and phase-specific agent prompts
-    │ ├─ rules/ # Architecture, workflow, and epics rules/patterns
-    │ └─ templates/ # Generation templates for research, PRD, SAD, etc.
+    │   ├─ agents/    # Agent persona definitions (project-mgr, system-arch, frontend, backend, etc.)
+    │   ├─ prompts/   # Phase-specific agent prompts
+    │   ├─ rules/     # AAMAD core, workflow, adapter (CrewAI), epics
+    │   └─ templates/ # MRD, PRD, SAD generation templates
     ├─ project-context/
-    │ ├─ 1.define/ # Project-specific PRD, SAD, research reports, etc.
-    │ ├─ 2.build/ # Output artifacts for setup, frontend, backend, etc.
-    │ └─ 3.deliver/ # QA logs, deploy configs, release notes, etc.
-    ├─ CHECKLIST.md # Step-by-step execution guide
-    └─ README.md # This file
+    │   ├─ 1.define/  # MRD, PRD, SAD (mrd.md, prd.md, sad.md)
+    │   ├─ 2.build/   # Setup, frontend, backend, integration, QA artifacts
+    │   └─ 3.deliver/ # QA logs, deploy configs, release notes
+    ├─ Usecase.txt    # BAGANA AI use case (source for PRD)
+    ├─ CHECKLIST.md   # Step-by-step execution guide
+    └─ README.md      # This file
 
-
-**Framework artifacts** (in `.cursor/`) are reusable for any new project.  
-**Project-context** contains all generated and instance-specific documentation for each app built with AAMAD.
+**Framework artifacts** in `.cursor/` are the AAMAD rules and templates. **project-context/** holds BAGANA AI–specific outputs (MRD, PRD, SAD, build artifacts).
 
 ---
 
-## How to Use the Framework
+## Getting Started
 
 1. **Clone this repository.**
    ```bash
-   git clone https://github.com/synaptic-ai-consulting/AAMAD
+   git clone https://github.com/louistherhansen/bagana-ai-conent-planer.git
+   cd bagana-ai-conent-planer
    ```
-2. Confirm `.cursor/` contains the full agent, prompt, and rule set.
-3. Follow the `CHECKLIST.md` to run using multi-agent autonomy — typically, via CursorAI or another coding agent platform.
-4. Each agent persona executes its epic(s), producing separate markdown artifacts and code as they go.
-5. Review, test, and launch the MVP, then iterate or scale with additional features.
-
----
-
-## Install via pip / uv
-
-Instead of cloning, you can install the full artifact bundle from PyPI:
-
-```bash
-pip install aamad
-# or
-uv install aamad
-```
-
-After installation, run the CLI to copy the artifacts into your project:
-
-```bash
-aamad init --dest /path/to/your/project
-```
-
-Flags:
-- `--dest PATH` (defaults to current directory)
-- `--overwrite` (allow replacing existing files)
-- `--dry-run` (preview what would be written)
-
-You can inspect the package contents without extracting them via `aamad bundle-info --verbose`.
+2. Ensure `.cursor/` contains the full agent, prompt, and rule set (included in repo).
+3. Follow [CHECKLIST.md](CHECKLIST.md) to run phases — e.g. *create-mrd*, *create-prd*, *create-sad*, *setup-project* — using Cursor or another agent-enabled IDE.
+4. Each persona (e.g. `@project-mgr`, `@system-arch`) runs its epic(s) and writes artifacts under `project-context/`.
+5. Review, test, and iterate toward the MVP defined in the PRD.
 
 ---
 
@@ -137,12 +114,12 @@ You can inspect the package contents without extracting them via `aamad bundle-i
 
 The Product Manager persona (`@product-mgr`) conducts prompt-driven discovery and context setup to standardize project scoping:
 
-- **Market Research:** Generate Market Research Document (MRD) using `.cursor/templates/mrd-template.md`
-- **Requirements:** Generate Product Requirements Document (PRD) using `.cursor/templates/prd-template.md`
-- **Context Summary:** Create comprehensive context handoff artifacts for technical teams
-- **Validation:** Ensure completeness of market analysis, user personas, feature requirements, and success metrics
+- **Market Research:** Generate [MRD](project-context/1.define/mrd.md) using `.cursor/templates/mr-template.md` (review use case and PRD).
+- **Requirements:** Generate [PRD](project-context/1.define/prd.md) using `.cursor/templates/prd-template.md` (from use case / research).
+- **Context Summary:** Create comprehensive context handoff artifacts for technical teams.
+- **Validation:** Ensure completeness of market analysis, user personas, feature requirements, and success metrics.
 
-Phase 1 outputs are stored in `project-context/1.define/` and provide the foundation for all subsequent development phases.
+Phase 1 outputs live in `project-context/1.define/` (MRD, PRD, then SAD from System Architect) and form the foundation for Build and Deliver.
 
 ---
 
@@ -174,11 +151,11 @@ Artifacts are versioned and stored in `project-context/2.build` for traceability
 
 ## Contributing
 
-Contributions are welcome!  
-- Open an issue for bugs/feature ideas/improvements.
-- Submit pull requests with extended templates, new agent personas, or bug fixes.
-- Help evolve the knowledge base and documentation for greater adoption.
-- When modifying `.cursor/` or `project-context/`, run `python scripts/update_bundle.py` to refresh the packaged artifact bundle before publishing.
+Contributions are welcome.
+
+- Open an [issue](https://github.com/louistherhansen/bagana-ai-conent-planer/issues) for bugs, feature ideas, or improvements.
+- Submit pull requests for template updates, agent persona changes, or documentation.
+- Keep artifacts under `project-context/` and `.cursor/` consistent with the PRD and AAMAD rules.
 
 ---
 
