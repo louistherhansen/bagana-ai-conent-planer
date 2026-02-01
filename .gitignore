@@ -1,0 +1,35 @@
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+.env/
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Logs and build artifacts
+*.log
+project-context/2.build/logs/
+*.tmp
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# CrewAI / storage (if used)
+CREWAI_STORAGE_DIR/
