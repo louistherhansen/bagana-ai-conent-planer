@@ -1,0 +1,2 @@
+# Crew output artifacts (plans, sentiment, trend summaries) per SAD §2, §6
+# Backend: write outputs here per task expected_output; temp-write-then-atomic-replace

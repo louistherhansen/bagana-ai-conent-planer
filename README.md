@@ -96,8 +96,9 @@ flowchart LR
     │   ├─ 1.define/  # mrd, prd, sad, handoff-approval, assumptions-and-open-questions, validation-completeness
     │   ├─ 2.build/   # setup.md, logs/, frontend/backend/integration/qa artifacts
     │   └─ 3.deliver/ # QA logs, deploy configs, release notes
+    ├─ .venv/         # Python virtual environment (create via python -m venv .venv; in .gitignore)
     ├─ env.example    # Env template (copy to .env); AAMAD_ADAPTER, LLM, integrations
-    ├─ requirements.txt # Python deps: crewai, pyyaml (CrewAI layer)
+    ├─ requirements.txt # Python deps: crewai, pyyaml (CrewAI layer and dependencies)
     ├─ Usecase.txt    # BAGANA AI use case (source for PRD)
     ├─ CHECKLIST.md   # Step-by-step execution guide
     └─ README.md      # This file
@@ -114,7 +115,21 @@ flowchart LR
    cd bagana-ai-conent-planer
    ```
 2. **Set environment:** Copy [env.example](env.example) to `.env` and set `AAMAD_ADAPTER=crewai` (and LLM/integration vars when implementing). Do not commit `.env`.
-3. **Python (CrewAI layer):** Create a virtual environment and install dependencies: `pip install -r requirements.txt`. See [setup.md](project-context/2.build/setup.md).
+3. **Python (CrewAI layer):** Create a virtual environment and install dependencies.
+   ```bash
+   # Create venv (Python 3.10+)
+   python -m venv .venv
+   # If that fails, try: py -3 -m venv .venv
+
+   # Activate (Windows PowerShell)
+   .\.venv\Scripts\Activate.ps1
+   # Activate (Windows cmd): .\.venv\Scripts\activate.bat
+   # Activate (Linux/macOS): source .venv/bin/activate
+
+   # Install dependencies
+   pip install -r requirements.txt
+   ```
+   See [setup.md](project-context/2.build/setup.md) for full setup details.
 4. Ensure `.cursor/` contains the full agent, prompt, and rule set (included in repo).
 5. Follow [CHECKLIST.md](CHECKLIST.md) to run phases — e.g. *create-mrd*, *create-prd*, *create-sad*, *setup-project*, *develop-fe*, *develop-be* — using Cursor or another agent-enabled IDE.
 6. Each persona (e.g. `@project-mgr`, `@system-arch`, `@frontend.eng`, `@backend.eng`) runs its epic(s) and writes artifacts under `project-context/`.
