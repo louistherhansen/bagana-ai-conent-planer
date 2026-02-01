@@ -1,0 +1,39 @@
+# BAGANA AI — Stub config for backlog agents and tasks
+# PRD P1/P2. Wire into agents.yaml and tasks.yaml when features are implemented.
+# Per backend-eng *stub-nonmvp: placeholders only, not loaded by build_crew().
+
+# --- report_summarizer agent (P1, PRD §3, F6) ---
+# Uncomment and add to agents.yaml when P1 reporting crew is implemented.
+#
+# report_summarizer:
+#   role: Report and summary producer
+#   goal: Produce human-readable summaries and reports from plan + sentiment + trend outputs
+#   backstory: Communicates clearly to agency stakeholders. 5+ years in agency reporting.
+#   llm: openai
+#   allow_delegation: false
+#   verbose: false
+#   max_iter: 8
+#   max_execution_time: 60
+#   max_retry_limit: 2
+#   tools: []  # Bound: report_template_renderer
+
+# --- report_summarize task (P1) ---
+# Uncomment and add to tasks.yaml when P1 reporting crew is implemented.
+# Context: plan_content, analyze_sentiment, research_trends
+#
+# report_summarize:
+#   name: report_summarize
+#   agent: report_summarizer
+#   description: Produce human-readable report from plan, sentiment, and trend outputs.
+#   expected_output: Report at project-context/2.build/artifacts/report.md
+#   output_file: project-context/2.build/artifacts/report.md
+#   context_from: [plan_content, analyze_sentiment, research_trends]
+
+# --- messaging_optimizer task (P1, F5) ---
+# New task + optional agent for F5 Messaging optimization.
+#
+# messaging_optimizer:
+#   name: optimize_messaging
+#   agent: content_planner  # or dedicated agent
+#   description: Suggest messaging optimizations based on sentiment and trend data.
+#   context_from: [plan_content, analyze_sentiment, research_trends]

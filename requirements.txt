@@ -1,5 +1,5 @@
 # BAGANA AI — Python dependencies (CrewAI layer)
-# SAD §2, §4; PRD §3. Backend epic: pin versions and add tool deps.
+# SAD §2, §4; PRD §3. Tested with crewai 1.7.x; 0.28+ supported.
 
 crewai>=0.28.0
 pyyaml>=6.0

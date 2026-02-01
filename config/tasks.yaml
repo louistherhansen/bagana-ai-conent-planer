@@ -1,24 +1,72 @@
-# BAGANA AI — CrewAI task definitions (stub)
+# BAGANA AI — CrewAI task definitions
 # Source: PRD §3, SAD §2; adapter: .cursor/rules/adapter-crewai.mdc
-# Backend epic: add description, expected_output (path + headings), context, agent ref; bind to crew.
+# Context bindings resolved at runtime in crew/run.py.
 
 tasks:
   plan_content:
+    name: plan_content
     agent: content_planner
-    description: "[Backend: define] Produce structured content plan from campaign context and constraints."
-    expected_output: "[Backend: target path + required template headings; no code fences]"
-    # context: PRD, SAD, user input; placeholders {campaign_id}, {brief_path} bound at runtime
+    description: |
+      Produce a structured multi-talent content plan from the campaign context and user input.
+      User input: {user_input}
+      Use the provided campaign context, talents, and constraints to create a content plan with:
+      - Overview and objectives
+      - Talent assignments and content themes
+      - Timeline and milestones
+      - Key messaging and call-to-actions
+      Reference PRD F1 and SAD §2 for plan structure. Output plain Markdown; no code fences.
+    expected_output: |
+      Content plan artifact at project-context/2.build/artifacts/plan.md with headings:
+      - Overview
+      - Objectives
+      - Talent Assignments
+      - Content Themes
+      - Timeline
+      - Key Messaging
+      - Audit
+      No code fences around machine-parsed sections.
+    output_file: project-context/2.build/artifacts/plan.md
+    create_directory: true
+    context: []  # First task; receives user input via inputs
 
   analyze_sentiment:
+    name: analyze_sentiment
     agent: sentiment_analyst
-    description: "[Backend: define] Analyze content/briefs for sentiment and tone; surface risks and opportunities."
-    expected_output: "[Backend: target path + required template headings]"
-    # context: plan output, brief paths
+    description: |
+      Analyze the content plan and any briefs for sentiment and tone.
+      Surface risks (e.g., negative tone, brand-safety concerns) and opportunities.
+      Use plan output from plan_content task as context.
+      Reference PRD F2. Output plain Markdown; no code fences.
+    expected_output: |
+      Sentiment analysis artifact at project-context/2.build/artifacts/sentiment.md with headings:
+      - Summary
+      - Risks
+      - Opportunities
+      - Recommendations
+      - Audit
+      No code fences around machine-parsed sections.
+    output_file: project-context/2.build/artifacts/sentiment.md
+    create_directory: true
+    context_from: [plan_content]  # Resolved to Task refs in code
 
   research_trends:
+    name: research_trends
     agent: trend_researcher
-    description: "[Backend: define] Gather and summarize market/trend insights for plans and briefs."
-    expected_output: "[Backend: target path + required template headings]"
-    # context: plan output, campaign context
+    description: |
+      Gather and summarize relevant market/trend insights for the content plan.
+      Use plan output from plan_content task as context.
+      Reference PRD F3. Focus on creator economy and content strategy trends.
+      Output plain Markdown; no code fences.
+    expected_output: |
+      Trend insights artifact at project-context/2.build/artifacts/trends.md with headings:
+      - Key Trends
+      - Implications for Plan
+      - Recommendations
+      - Sources
+      - Audit
+      No code fences around machine-parsed sections.
+    output_file: project-context/2.build/artifacts/trends.md
+    create_directory: true
+    context_from: [plan_content]  # Resolved to Task refs in code
 
   # report_summarize: P1; agent report_summarizer; context: plan + sentiment + trend outputs

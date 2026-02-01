@@ -87,7 +87,7 @@ flowchart LR
     │   ├─ rules/     # AAMAD core, workflow, adapter (CrewAI), epics
     │   └─ templates/ # MRD, PRD, SAD generation templates
     ├─ app/           # Next.js App Router (SAD §3)
-    │   ├─ api/crew/  # API route stub; Integration epic wires CrewAI
+    │   ├─ api/crew/  # Chat API; POST invokes CrewAI crew
     │   ├─ chat/      # Chat interface (assistant-ui)
     │   ├─ dashboard/ # Features roadmap
     │   ├─ plans/     # Content plans stub (F1)
@@ -98,13 +98,16 @@ flowchart LR
     ├─ components/    # React components (PageLayout, ChatInterface, FeatureStub, etc.)
     ├─ config/        # CrewAI agent and task config (SAD §2)
     │   ├─ agents.yaml
-    │   └─ tasks.yaml
+    │   ├─ tasks.yaml
+    │   └─ stubs.yaml # Backlog agent/task stubs (P1)
     ├─ crew/          # Python CrewAI orchestration layer (SAD §4)
     │   ├─ __init__.py
-    │   └─ run.py     # Entrypoint; Backend implements kickoff
+    │   ├─ run.py     # Entrypoint; kickoff(); --stdin for API
+    │   ├─ tools.py   # Stub tools (plan/sentiment/trend validators)
+    │   └─ stubs.py   # Backlog stubs (SentimentAPIClient, etc.)
     ├─ project-context/
     │   ├─ 1.define/  # mrd, prd, sad, handoff-approval, assumptions-and-open-questions, validation-completeness
-    │   ├─ 2.build/   # setup.md, frontend.md, logs/, artifacts
+    │   ├─ 2.build/   # setup.md, frontend.md, backend.md, logs/, artifacts
     │   └─ 3.deliver/ # QA logs, deploy configs, release notes
     ├─ .venv/         # Python virtual environment (create via python -m venv .venv; in .gitignore)
     ├─ env.example    # Env template (copy to .env); AAMAD_ADAPTER, LLM, integrations
@@ -114,39 +117,73 @@ flowchart LR
     ├─ CHECKLIST.md   # Step-by-step execution guide
     └─ README.md      # This file
 
-**Framework artifacts** in `.cursor/` are the AAMAD rules and templates. **project-context/** holds BAGANA AI–specific outputs (MRD, PRD, SAD, [setup](project-context/2.build/setup.md), [frontend](project-context/2.build/frontend.md)). **app/** and **components/** are the Next.js UI; **config/** and **crew/** form the CrewAI skeleton; Backend epic implements orchestration and tools.
+**Framework artifacts** in `.cursor/` are the AAMAD rules and templates. **project-context/** holds BAGANA AI–specific outputs (MRD, PRD, SAD, [setup](project-context/2.build/setup.md), [frontend](project-context/2.build/frontend.md), [backend](project-context/2.build/backend.md)). **app/** and **components/** are the Next.js UI with chat wired to CrewAI; **config/** and **crew/** implement the CrewAI orchestration, agents, and tools.
 
 ---
 
 ## Getting Started
+
+### Quick start (chat + CrewAI)
 
 1. **Clone this repository.**
    ```bash
    git clone https://github.com/louistherhansen/bagana-ai-conent-planer.git
    cd bagana-ai-conent-planer
    ```
-2. **Set environment:** Copy [env.example](env.example) to `.env` and set `AAMAD_ADAPTER=crewai` (and LLM/integration vars when implementing). Do not commit `.env`.
-3. **Node.js (Frontend):** Install dependencies and run the dev server.
+
+2. **Set environment.** Copy [env.example](env.example) to `.env` and add your OpenAI API key:
+   ```bash
+   cp env.example .env
+   # Edit .env and set: OPENAI_API_KEY=sk-your-key-here
+   ```
+   Do not commit `.env`.
+
+3. **Install Node.js dependencies and start the dev server.**
    ```bash
    npm install
    npm run dev
    ```
-   Open [http://localhost:3000](http://localhost:3000). Routes: `/` (home), `/chat`, `/dashboard`, `/plans`, `/reports`, `/sentiment`, `/trends`, `/settings`.
-4. **Python (CrewAI layer):** Create a virtual environment and install dependencies.
+   Open [http://localhost:3000](http://localhost:3000). Go to `/chat` to use the AI content planning assistant.
+
+4. **Install Python (for CrewAI).** The chat API spawns the Python crew. Ensure Python 3.10+ is in PATH:
    ```bash
-   # Create venv (Python 3.10+)
+   # Create venv (optional, recommended)
    python -m venv .venv
-   # If that fails, try: py -3 -m venv .venv
+   # Windows: .\.venv\Scripts\Activate.ps1
+   # Linux/macOS: source .venv/bin/activate
 
-   # Activate (Windows PowerShell)
-   .\.venv\Scripts\Activate.ps1
-   # Activate (Windows cmd): .\.venv\Scripts\activate.bat
-   # Activate (Linux/macOS): source .venv/bin/activate
-
-   # Install dependencies
    pip install -r requirements.txt
    ```
-   See [setup.md](project-context/2.build/setup.md) for full setup details.
+
+### Routes
+
+| Route | Description |
+|-------|-------------|
+| `/` | Home |
+| `/chat` | AI chat — content planning crew (plan → sentiment → trends) |
+| `/dashboard` | Feature roadmap |
+| `/plans`, `/reports`, `/sentiment`, `/trends`, `/settings` | Stub pages |
+
+### Run crew from CLI
+
+```bash
+python -m crew.run "Create a content plan for a summer campaign with 3 talents"
+```
+
+### Chat API
+
+POST `/api/crew` accepts JSON and returns the crew output:
+
+```bash
+curl -X POST http://localhost:3000/api/crew \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Create a content plan for a summer campaign"}'
+```
+
+Response: `{ "status": "complete", "output": "...", "task_outputs": [...] }` or `{ "status": "error", "error": "..." }`. See [backend.md](project-context/2.build/backend.md) §10 for full spec.
+
+### AAMAD workflow
+
 5. Ensure `.cursor/` contains the full agent, prompt, and rule set (included in repo).
 6. Follow [CHECKLIST.md](CHECKLIST.md) to run phases — e.g. *create-mrd*, *create-prd*, *create-sad*, *setup-project*, *develop-fe*, *develop-be* — using Cursor or another agent-enabled IDE.
 7. Each persona (e.g. `@project-mgr`, `@system-arch`, `@frontend.eng`, `@backend.eng`) runs its epic(s) and writes artifacts under `project-context/`.

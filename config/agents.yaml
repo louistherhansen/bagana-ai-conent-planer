@@ -1,27 +1,45 @@
-# BAGANA AI — CrewAI agent definitions (stub)
+# BAGANA AI — CrewAI agent definitions
 # Source: PRD §3, SAD §2; adapter: .cursor/rules/adapter-crewai.mdc
-# Backend epic: refine role, goal, backstory, llm, tools; bind tools in code.
+# Tools bound in crew/run.py; no inline agent definitions in code.
 
 agents:
   content_planner:
     role: Content strategy and multi-talent plan author
     goal: Produce and update structured content plans (calendars, briefs, messaging) aligned to campaigns and constraints
-    backstory: Experienced in agency content operations and multi-creator coordination
-    # tools: [file I/O, plan schema validation, calendar/brief loaders] — bind in code
-    # memory: per-campaign/epic; allow_delegation: false
+    backstory: Experienced in agency content operations and multi-creator coordination. 10+ years in content strategy and multi-creator campaign coordination.
+    llm: openai
+    allow_delegation: false
+    verbose: false
+    max_iter: 12
+    max_execution_time: 120
+    max_retry_limit: 2
+    respect_context_window: true
+    tools: []  # Bound in code: plan_schema_validator (stub)
 
   sentiment_analyst:
     role: Sentiment and tone analyst for content and briefs
     goal: Analyze content/briefs for sentiment and tone; surface risks and opportunities
-    backstory: Domain in brand safety and audience sentiment
-    # tools: [sentiment APIs or models, file I/O, schema validation] — bind in code
-    # memory: scoped to current run; allow_delegation: false
+    backstory: Domain expert in brand safety and audience sentiment. 8+ years in social listening and tone analysis.
+    llm: openai
+    allow_delegation: false
+    verbose: false
+    max_iter: 12
+    max_execution_time: 90
+    max_retry_limit: 2
+    respect_context_window: true
+    tools: []  # Bound in code: sentiment_schema_validator (stub)
 
   trend_researcher:
     role: Market and trend researcher for content strategy
     goal: Gather and summarize relevant market/trend insights for plans and briefs
-    backstory: Research-focused; understands creator and brand trends
-    # tools: [approved web/API tools with rate limits, file I/O] — bind in code
-    # memory: scoped to current research task; allow_delegation: false
+    backstory: Research-focused; understands creator and brand trends. 6+ years in market research and trend analysis.
+    llm: openai
+    allow_delegation: false
+    verbose: false
+    max_iter: 12
+    max_execution_time: 90
+    max_retry_limit: 2
+    respect_context_window: true
+    tools: []  # Bound in code: trend_schema_validator (stub)
 
   # report_summarizer: P1; role, goal, backstory, tools (file I/O, template renderers)
