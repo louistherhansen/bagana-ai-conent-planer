@@ -19,6 +19,7 @@ This project is built using the **AAMAD** (AI-Assisted Multi-Agent Application D
 - [Core Concepts](#core-concepts)
 - [Contributing](#contributing)
 - [License](#license)
+- [Quick reference](#quick-reference)
 
 ---
 
@@ -107,17 +108,19 @@ flowchart LR
     │   └─ stubs.py   # Backlog stubs (SentimentAPIClient, etc.)
     ├─ project-context/
     │   ├─ 1.define/  # mrd, prd, sad, handoff-approval, assumptions-and-open-questions, validation-completeness
-    │   ├─ 2.build/   # setup.md, frontend.md, backend.md, logs/, artifacts
+    │   ├─ 2.build/   # setup.md, frontend.md, backend.md, integration.md, logs/, artifacts
     │   └─ 3.deliver/ # QA logs, deploy configs, release notes
+    ├─ scripts/       # Test and utility scripts
+    │   └─ test-chat-roundtrip.mjs  # Basic chat round-trip test (GET + POST /api/crew)
     ├─ .venv/         # Python virtual environment (create via python -m venv .venv; in .gitignore)
-    ├─ env.example    # Env template (copy to .env); AAMAD_ADAPTER, LLM, integrations
+    ├─ env.example    # Env template (copy to .env); OPENAI_API_KEY, AAMAD_ADAPTER
     ├─ package.json   # Node deps: Next.js, React, assistant-ui, Tailwind
     ├─ requirements.txt # Python deps: crewai, pyyaml (CrewAI layer)
     ├─ Usecase.txt    # BAGANA AI use case (source for PRD)
     ├─ CHECKLIST.md   # Step-by-step execution guide
     └─ README.md      # This file
 
-**Framework artifacts** in `.cursor/` are the AAMAD rules and templates. **project-context/** holds BAGANA AI–specific outputs (MRD, PRD, SAD, [setup](project-context/2.build/setup.md), [frontend](project-context/2.build/frontend.md), [backend](project-context/2.build/backend.md)). **app/** and **components/** are the Next.js UI with chat wired to CrewAI; **config/** and **crew/** implement the CrewAI orchestration, agents, and tools.
+**Framework artifacts** in `.cursor/` are the AAMAD rules and templates. **project-context/** holds BAGANA AI–specific outputs (MRD, PRD, SAD, [setup](project-context/2.build/setup.md), [frontend](project-context/2.build/frontend.md), [backend](project-context/2.build/backend.md), [integration](project-context/2.build/integration.md)). **app/** and **components/** are the Next.js UI with chat wired to CrewAI; **config/** and **crew/** implement the CrewAI orchestration, agents, and tools.
 
 ---
 
@@ -181,6 +184,17 @@ curl -X POST http://localhost:3000/api/crew \
 ```
 
 Response: `{ "status": "complete", "output": "...", "task_outputs": [...] }` or `{ "status": "error", "error": "..." }`. See [backend.md](project-context/2.build/backend.md) §10 for full spec.
+
+### Test chat round-trip
+
+With the dev server running (`npm run dev`), run the basic API test in another terminal:
+
+```bash
+node scripts/test-chat-roundtrip.mjs
+```
+
+Optional: set `BASE_URL` if the app is not on `http://localhost:3000` (e.g. `BASE_URL=http://localhost:3001 node scripts/test-chat-roundtrip.mjs`).  
+For integration details, known issues (e.g. invalid OPENAI_API_KEY, timeout, streaming), and manual verification steps, see [integration.md](project-context/2.build/integration.md).
 
 ### AAMAD workflow
 
@@ -249,6 +263,20 @@ Licensed under Apache License 2.0.
 >    Explicit patent grant and patent retaliation protect maintainers and users from patent disputes, which is valuable for AI/ML methods, agent protocols, and orchestration logic.
 >    Permissive terms enable proprietary or closed-source usage while requiring attribution and change notices, which encourages integration into enterprise stacks.
 >    Compared to MIT/BSD, Apache-2.0 clarifies modification notices and patent rights, reducing legal ambiguity for contributors and adopters.
+
+---
+
+---
+
+## Quick reference
+
+| Topic | Link |
+|-------|------|
+| Use case | [Usecase.txt](Usecase.txt) |
+| PRD / SAD / MRD | [project-context/1.define/](project-context/1.define/) |
+| Setup, frontend, backend, integration | [project-context/2.build/](project-context/2.build/) — [setup](project-context/2.build/setup.md), [frontend](project-context/2.build/frontend.md), [backend](project-context/2.build/backend.md), [integration](project-context/2.build/integration.md) |
+| Chat round-trip test | `node scripts/test-chat-roundtrip.mjs` (with `npm run dev` running) |
+| Known issues (API key, timeout, streaming) | [integration.md §8](project-context/2.build/integration.md#8-known-issues) |
 
 ---
 

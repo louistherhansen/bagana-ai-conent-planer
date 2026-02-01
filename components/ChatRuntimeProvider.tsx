@@ -8,6 +8,7 @@ import {
   type ChatModelRunResult,
 } from "@assistant-ui/react";
 
+/** Chat model adapter: wires assistant-ui chat to backend CrewAI API (POST /api/crew). */
 const crewAdapter: ChatModelAdapter = {
   async run(options: ChatModelRunOptions): Promise<ChatModelRunResult> {
     const { messages, abortSignal } = options;
