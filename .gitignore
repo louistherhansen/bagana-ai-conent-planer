@@ -33,3 +33,11 @@ Thumbs.db
 
 # CrewAI / storage (if used)
 CREWAI_STORAGE_DIR/
+
+# Next.js
+.next/
+out/
+node_modules/
+
+# Vercel
+.vercel
