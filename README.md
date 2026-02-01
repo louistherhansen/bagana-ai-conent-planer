@@ -34,7 +34,7 @@ BAGANA AI targets agency ops managers, content strategists, and campaign manager
 
 System design (CrewAI agents, API, data flow, MVP scope) is specified in the [SAD](project-context/1.define/sad.md).
 
-Key artifacts: [use case](Usecase.txt), [MRD](project-context/1.define/mrd.md), [PRD](project-context/1.define/prd.md), [SAD](project-context/1.define/sad.md), [validation](project-context/1.define/validation-completeness.md), [assumptions & open questions](project-context/1.define/assumptions-and-open-questions.md), and [handoff approval](project-context/1.define/handoff-approval.md) for the technical build phase.
+Key artifacts: [use case](Usecase.txt), [MRD](project-context/1.define/mrd.md), [PRD](project-context/1.define/prd.md), [SAD](project-context/1.define/sad.md), [validation](project-context/1.define/validation-completeness.md), [assumptions & open questions](project-context/1.define/assumptions-and-open-questions.md), and [handoff approval](project-context/1.define/handoff-approval.md) for the technical build phase. Build artifacts: [setup](project-context/2.build/setup.md), [frontend](project-context/2.build/frontend.md), [backend](project-context/2.build/backend.md), [integration](project-context/2.build/integration.md), [QA](project-context/2.build/qa.md) (smoke/functional tests, defects, gaps, future work).
 
 ---
 
@@ -108,7 +108,7 @@ flowchart LR
     │   └─ stubs.py   # Backlog stubs (SentimentAPIClient, etc.)
     ├─ project-context/
     │   ├─ 1.define/  # mrd, prd, sad, handoff-approval, assumptions-and-open-questions, validation-completeness
-    │   ├─ 2.build/   # setup.md, frontend.md, backend.md, integration.md, logs/, artifacts
+    │   ├─ 2.build/   # setup.md, frontend.md, backend.md, integration.md, qa.md, logs/, artifacts
     │   └─ 3.deliver/ # QA logs, deploy configs, release notes
     ├─ scripts/       # Test and utility scripts
     │   └─ test-chat-roundtrip.mjs  # Basic chat round-trip test (GET + POST /api/crew)
@@ -120,7 +120,7 @@ flowchart LR
     ├─ CHECKLIST.md   # Step-by-step execution guide
     └─ README.md      # This file
 
-**Framework artifacts** in `.cursor/` are the AAMAD rules and templates. **project-context/** holds BAGANA AI–specific outputs (MRD, PRD, SAD, [setup](project-context/2.build/setup.md), [frontend](project-context/2.build/frontend.md), [backend](project-context/2.build/backend.md), [integration](project-context/2.build/integration.md)). **app/** and **components/** are the Next.js UI with chat wired to CrewAI; **config/** and **crew/** implement the CrewAI orchestration, agents, and tools.
+**Framework artifacts** in `.cursor/` are the AAMAD rules and templates. **project-context/** holds BAGANA AI–specific outputs (MRD, PRD, SAD, [setup](project-context/2.build/setup.md), [frontend](project-context/2.build/frontend.md), [backend](project-context/2.build/backend.md), [integration](project-context/2.build/integration.md), [QA](project-context/2.build/qa.md)). **app/** and **components/** are the Next.js UI with chat wired to CrewAI; **config/** and **crew/** implement the CrewAI orchestration, agents, and tools.
 
 ---
 
@@ -134,12 +134,13 @@ flowchart LR
    cd bagana-ai-conent-planer
    ```
 
-2. **Set environment.** Copy [env.example](env.example) to `.env` and add your OpenAI API key:
+2. **Set environment.** Copy [env.example](env.example) to `.env` and set your OpenAI API key:
    ```bash
-   cp env.example .env
+   # Windows: copy env.example .env
+   # Linux/macOS: cp env.example .env
    # Edit .env and set: OPENAI_API_KEY=sk-your-key-here
    ```
-   Do not commit `.env`.
+   Do not commit `.env`. Chat and crew runs require a valid `OPENAI_API_KEY`; see [Known issues](project-context/2.build/integration.md#8-known-issues).
 
 3. **Install Node.js dependencies and start the dev server.**
    ```bash
@@ -173,6 +174,18 @@ flowchart LR
 python -m crew.run "Create a content plan for a summer campaign with 3 talents"
 ```
 
+Or with JSON on stdin (e.g. for smoke tests):
+
+```bash
+# Linux/macOS:
+echo '{"message":"Smoke test"}' | python -m crew.run --stdin
+
+# Windows PowerShell:
+'{"message":"Smoke test"}' | python -m crew.run --stdin
+```
+
+Expect JSON on stdout: `{"status":"complete", "output":"...", "task_outputs": [...]}` or `{"status":"error", "error":"..."}`. With invalid or missing `OPENAI_API_KEY`, the crew returns `status: "error"`.
+
 ### Chat API
 
 POST `/api/crew` accepts JSON and returns the crew output:
@@ -185,16 +198,16 @@ curl -X POST http://localhost:3000/api/crew \
 
 Response: `{ "status": "complete", "output": "...", "task_outputs": [...] }` or `{ "status": "error", "error": "..." }`. See [backend.md](project-context/2.build/backend.md) §10 for full spec.
 
-### Test chat round-trip
+### Smoke and functional tests
 
-With the dev server running (`npm run dev`), run the basic API test in another terminal:
+- **Backend-only (Python crew):** Verifies crew accepts JSON on stdin and returns JSON on stdout. Run from repo root (see “Run crew from CLI” above for stdin examples). With invalid `OPENAI_API_KEY` you get `{"status":"error","error":"..."}`; contract is still valid.
+- **Full stack (frontend + backend):** With the dev server running (`npm run dev`), run the round-trip test in another terminal:
+  ```bash
+  node scripts/test-chat-roundtrip.mjs
+  ```
+  This checks GET `/api/crew` (health) and POST `/api/crew` (chat). Optional: set `BASE_URL` if the app is not on `http://localhost:3000` (e.g. `BASE_URL=http://localhost:3001 node scripts/test-chat-roundtrip.mjs`).
 
-```bash
-node scripts/test-chat-roundtrip.mjs
-```
-
-Optional: set `BASE_URL` if the app is not on `http://localhost:3000` (e.g. `BASE_URL=http://localhost:3001 node scripts/test-chat-roundtrip.mjs`).  
-For integration details, known issues (e.g. invalid OPENAI_API_KEY, timeout, streaming), and manual verification steps, see [integration.md](project-context/2.build/integration.md).
+For verification steps, **known issues** (invalid/missing OPENAI_API_KEY, 120s timeout, no streaming), **defects**, **gaps**, and **future work** (E2E, WCAG, streaming), see [integration.md](project-context/2.build/integration.md) §7–8 and [qa.md](project-context/2.build/qa.md).
 
 ### AAMAD workflow
 
@@ -274,9 +287,11 @@ Licensed under Apache License 2.0.
 |-------|------|
 | Use case | [Usecase.txt](Usecase.txt) |
 | PRD / SAD / MRD | [project-context/1.define/](project-context/1.define/) |
-| Setup, frontend, backend, integration | [project-context/2.build/](project-context/2.build/) — [setup](project-context/2.build/setup.md), [frontend](project-context/2.build/frontend.md), [backend](project-context/2.build/backend.md), [integration](project-context/2.build/integration.md) |
-| Chat round-trip test | `node scripts/test-chat-roundtrip.mjs` (with `npm run dev` running) |
+| Setup, frontend, backend, integration, QA | [project-context/2.build/](project-context/2.build/) — [setup](project-context/2.build/setup.md), [frontend](project-context/2.build/frontend.md), [backend](project-context/2.build/backend.md), [integration](project-context/2.build/integration.md), [qa](project-context/2.build/qa.md) |
+| Smoke test (Python crew) | `'{"message":"Smoke test"}' \| python -m crew.run --stdin` (PowerShell) or `echo '{"message":"Smoke test"}' \| python -m crew.run --stdin` (bash) |
+| Chat round-trip test | `node scripts/test-chat-roundtrip.mjs` (requires `npm run dev` in another terminal) |
 | Known issues (API key, timeout, streaming) | [integration.md §8](project-context/2.build/integration.md#8-known-issues) |
+| Defects, gaps, future work | [qa.md](project-context/2.build/qa.md) |
 
 ---
 
