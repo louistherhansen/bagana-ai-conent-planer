@@ -31,7 +31,7 @@ BAGANA AI targets agency ops managers, content strategists, and campaign manager
 - **Market trend insights** — Trend and market data to inform strategy
 - **Unified workflow** — One platform for planning, sentiment, and trends (no manual copy-paste across tools)
 
-Key artifacts: [Market Research (MRD)](project-context/1.define/mrd.md), [Product Requirements (PRD)](project-context/1.define/prd.md), and the [use case](Usecase.txt).
+Key artifacts: [use case](Usecase.txt), [MRD](project-context/1.define/mrd.md), [PRD](project-context/1.define/prd.md), [validation](project-context/1.define/validation-completeness.md), [assumptions & open questions](project-context/1.define/assumptions-and-open-questions.md), and [handoff approval](project-context/1.define/handoff-approval.md) for the technical build phase.
 
 ---
 
@@ -85,9 +85,10 @@ flowchart LR
     │   ├─ rules/     # AAMAD core, workflow, adapter (CrewAI), epics
     │   └─ templates/ # MRD, PRD, SAD generation templates
     ├─ project-context/
-    │   ├─ 1.define/  # MRD, PRD, SAD (mrd.md, prd.md, sad.md)
+    │   ├─ 1.define/  # mrd, prd, sad, handoff-approval, assumptions-and-open-questions, validation-completeness
     │   ├─ 2.build/   # Setup, frontend, backend, integration, QA artifacts
     │   └─ 3.deliver/ # QA logs, deploy configs, release notes
+    ├─ env.example    # Env template (copy to .env); AAMAD_ADAPTER=crewai
     ├─ Usecase.txt    # BAGANA AI use case (source for PRD)
     ├─ CHECKLIST.md   # Step-by-step execution guide
     └─ README.md      # This file
@@ -103,10 +104,11 @@ flowchart LR
    git clone https://github.com/louistherhansen/bagana-ai-conent-planer.git
    cd bagana-ai-conent-planer
    ```
-2. Ensure `.cursor/` contains the full agent, prompt, and rule set (included in repo).
-3. Follow [CHECKLIST.md](CHECKLIST.md) to run phases — e.g. *create-mrd*, *create-prd*, *create-sad*, *setup-project* — using Cursor or another agent-enabled IDE.
-4. Each persona (e.g. `@project-mgr`, `@system-arch`) runs its epic(s) and writes artifacts under `project-context/`.
-5. Review, test, and iterate toward the MVP defined in the PRD.
+2. **Set environment:** Add `AAMAD_ADAPTER=crewai` to your environment (current default multi-agent framework). Copy [env.example](env.example) to `.env` and adjust, or set the variable in your shell/IDE.
+3. Ensure `.cursor/` contains the full agent, prompt, and rule set (included in repo).
+4. Follow [CHECKLIST.md](CHECKLIST.md) to run phases — e.g. *create-mrd*, *create-prd*, *create-sad*, *setup-project* — using Cursor or another agent-enabled IDE.
+5. Each persona (e.g. `@project-mgr`, `@system-arch`) runs its epic(s) and writes artifacts under `project-context/`.
+6. Review, test, and iterate toward the MVP defined in the PRD.
 
 ---
 
@@ -116,17 +118,18 @@ The Product Manager persona (`@product-mgr`) conducts prompt-driven discovery an
 
 - **Market Research:** Generate [MRD](project-context/1.define/mrd.md) using `.cursor/templates/mr-template.md` (review use case and PRD).
 - **Requirements:** Generate [PRD](project-context/1.define/prd.md) using `.cursor/templates/prd-template.md` (from use case / research).
-- **Context Summary:** Create comprehensive context handoff artifacts for technical teams.
-- **Validation:** Ensure completeness of market analysis, user personas, feature requirements, and success metrics.
+- **Validation:** Validate completeness of market analysis, user personas, feature requirements, success metrics, and business goals ([validation-completeness.md](project-context/1.define/validation-completeness.md)).
+- **Assumptions & open questions:** Record in [assumptions-and-open-questions.md](project-context/1.define/assumptions-and-open-questions.md) for downstream resolution (SAD, setup, backend, project plan).
+- **Handoff approval:** Approve context boundaries and artifacts for the technical build phase ([handoff-approval.md](project-context/1.define/handoff-approval.md)).
 
-Phase 1 outputs live in `project-context/1.define/` (MRD, PRD, then SAD from System Architect) and form the foundation for Build and Deliver.
+Phase 1 outputs live in `project-context/1.define/`. After approval, Phase 2 Step 0 (System Architect) creates the SAD; then Build executes setup, frontend, backend, integration, and QA.
 
 ---
 
 ## Phase 2: Build Stage (Multi-Agent)
 
 Each role is embodied by an agent persona, defined in `.cursor/agents/`.  
-Phase 2 is executed by running each epic in sequence after completing Phase 1:
+Phase 2 starts after [handoff approval](project-context/1.define/handoff-approval.md); run each epic in sequence per [CHECKLIST.md](CHECKLIST.md):
 
 - **Architecture:** Generate solution architecture document (`sad.md`)
 - **Setup:** Scaffold environment, install dependencies, and document (`setup.md`)
@@ -170,6 +173,7 @@ Licensed under Apache License 2.0.
 
 ---
 
-> For detailed step-by-step Phase 2 execution, see [CHECKLIST.md].  
-> For advanced reference and prompt engineering, see `.cursor/templates/` and `.cursor/rules/`.
+> **Phase 1:** Validate, record assumptions/open questions, then approve handoff ([handoff-approval.md](project-context/1.define/handoff-approval.md)).  
+> **Phase 2:** Step-by-step execution in [CHECKLIST.md](CHECKLIST.md).  
+> **Reference:** `.cursor/templates/` and `.cursor/rules/` for prompt engineering and adapter rules.
 

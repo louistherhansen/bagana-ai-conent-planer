@@ -195,6 +195,8 @@ This MRD was generated from the project use case and PRD. It does not yet includ
 
 ## Assumptions
 
+*For downstream resolution, see [assumptions-and-open-questions.md](assumptions-and-open-questions.md).*
+
 - Target market (agency/creator-team segment) and pain points are as stated in the use case and PRD; no primary market survey was run.
 - CrewAI is the execution framework; agent list and tools are as in PRD unless SAD refines them.
 - Sentiment and trend data sources will be selected in SAD; cost and rate limits are to be validated.
@@ -203,6 +205,8 @@ This MRD was generated from the project use case and PRD. It does not yet includ
 ---
 
 ## Open Questions
+
+*For downstream resolution, see [assumptions-and-open-questions.md](assumptions-and-open-questions.md).*
 
 - Exact sentiment and trend APIs/sources, rate limits, and cost (for SAD and budgeting).
 - Preferred calendar/brief formats and systems for F7 (P1).

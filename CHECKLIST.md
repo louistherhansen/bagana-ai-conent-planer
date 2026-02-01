@@ -13,7 +13,7 @@ This checklist guides you step-by-step through running AAMAD from Phase 1 (Defin
     - [ ] `*create-context` — Generate both MRD and PRD with context summary for handoff.
 - [ ] Validate completeness: market analysis, user personas, feature requirements, success metrics, and business goals.
 - [ ] Record assumptions and open questions in artifacts for downstream resolution.
-- [ ] Approve context boundaries and artifacts for technical build phase.
+- [ ] Approve context boundaries and artifacts for technical build phase (output: project-context/1.define/handoff-approval.md).
 
 ---
 
@@ -21,8 +21,9 @@ This checklist guides you step-by-step through running AAMAD from Phase 1 (Defin
 
 - [ ] Clone this repository and install all prerequisites (see README.md).
 - [ ] Ensure your project-context/1.define folder includes:
-  - [ ] market-research-document.md (MRD)
-  - [ ] product-requirements-document.md (PRD)
+  - [ ] mrd.md (MRD), prd.md (PRD)
+  - [ ] handoff-approval.md (approval for technical build phase)
+  - [ ] assumptions-and-open-questions.md, validation-completeness.md (optional but recommended)
 - [ ] Confirm `.cursor/` contains:
   - [ ] agents/ (with all persona .md files)
   - [ ] rules/, prompts/, templates/ folders as provided

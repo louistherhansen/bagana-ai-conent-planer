@@ -269,6 +269,8 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 
 ## Assumptions
 
+*For downstream resolution, see [assumptions-and-open-questions.md](assumptions-and-open-questions.md).*
+
 * Target users are agency/content strategists and campaign managers; no deep research report was provided, so market size and persona details are inferred.
 * CrewAI is the execution framework; agent list and tools will be finalized in SAD and adapter config.
 * MVP can start with CLI or minimal UI; full web/mobile UX is P1/P2.
@@ -278,6 +280,8 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 ---
 
 ## Open Questions
+
+*For downstream resolution, see [assumptions-and-open-questions.md](assumptions-and-open-questions.md).*
 
 * Exact sentiment and trend APIs/sources and their rate limits and cost.
 * Preferred calendar/brief formats and systems for F7.
