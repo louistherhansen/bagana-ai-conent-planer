@@ -17,6 +17,22 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 
 ---
 
+## Stakeholders and Concerns (ISO/IEC/IEEE 42010)
+
+| Stakeholder | Role | Primary concerns |
+|-------------|------|-------------------|
+| **Agency ops managers** | End user / buyer | Coordination at scale; time to plan; consistency across talents; audit trail and reproducibility. |
+| **Content strategists** | End user | Quality of plans and briefs; sentiment and trend inputs; messaging optimization; integration with existing tools. |
+| **Campaign managers** | End user | Campaign–talent alignment; performance visibility; reporting; approval and brand safety. |
+| **Development team** | Builder | Maintainability; adapter contract; testability; CI/CD and deployment; cost and latency control. |
+| **Operations / DevOps** | Operator | Deployment, monitoring, alerting; secrets and config; scaling and cost; incident response. |
+| **Product / business** | Owner | MVP scope; product–market fit; beta feedback; roadmap (P1/P2) and success metrics. |
+| **Compliance / legal** | Reviewer | Data privacy (e.g. GDPR); retention and deletion; consent; no secrets in artifacts. |
+
+**Correspondence:** Concerns are addressed in the architectural views (§§2–6), quality attributes (§7 and Quality Attributes Summary), constraints, and risks below; traceability to PRD/MRD is maintained throughout.
+
+---
+
 ## 1. MVP Architecture Philosophy & Principles
 
 ### MVP Design Principles
@@ -42,6 +58,71 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 | **assistant-ui (Phase 3)** | Production-grade LLM chat interface; reduces custom chat build; supports streaming and tool components for agent results (template §3). |
 | **Single primary crew for MVP** | One crew (plan → sentiment → trend enrichment) suffices for P0; optional reporting crew deferred to P1 (PRD §3, Assumptions). |
 | **Real-time streaming** | For interactive flows, streaming responses from CrewAI through API layer to client improve perceived performance and UX when web UI is used. |
+
+---
+
+## Architectural Views (Views and Beyond)
+
+Views below use primary presentation + element catalog + rationale; they correspond to §§2–6 and support stakeholder concerns.
+
+### Logical View
+
+**Primary presentation:** System as components and their responsibilities.
+
+| Element | Type | Responsibility |
+|--------|------|----------------|
+| **Content Planner Agent** | Agent | Produce/update structured content plans (calendars, briefs, messaging) from campaign context. |
+| **Sentiment Analyst Agent** | Agent | Analyze content/briefs for sentiment and tone; surface risks and opportunities. |
+| **Trend Researcher Agent** | Agent | Gather and summarize market/trend insights for plans and briefs. |
+| **Report Summarizer Agent** | Agent (P1) | Produce human-readable summaries/reports from plan + sentiment + trend outputs. |
+| **Crew (Plan + Sentiment + Trends)** | Crew | Orchestrate agents sequentially; pass context; produce plans and enriched artifacts. |
+| **API layer** | Component | Gateway between client (CLI/UI) and CrewAI layer; validation, streaming, auth. |
+| **CrewAI integration layer** | Component | Load agents/tasks from YAML; run crew; bind tools; log and audit. |
+| **Storage** | Component | Plans, analyses, reports (file/DB); session metadata when UI stores history. |
+
+**Rationale:** Logical decomposition aligns with PRD §3 agent definitions and single-crew MVP scope; API and storage support F1–F4 and future UI.
+
+### Process / Runtime View
+
+**Primary presentation:** Request flow and runtime behavior.
+
+| Element | Description |
+|--------|-------------|
+| **Request path** | User input → API (or CLI) → CrewAI layer → crew.kickoff() → tasks run sequentially (plan → sentiment/trend) → outputs written; streamed to client when UI. |
+| **Context passing** | Task.context carries PRD/SAD/SFS, user input, prior task outputs; no reliance on conversation memory for artifacts. |
+| **Error path** | Retries per adapter; on limit/prerequisite failure: Halt and Report, Diagnostic written; API returns user-visible error. |
+| **Concurrency** | MVP: single crew run per request; batch/concurrency limits per §7; external API rate limits constrain throughput. |
+
+**Rationale:** Sequential process ensures deterministic, auditable builds; streaming improves perceived latency for interactive UI.
+
+### Deployment View
+
+**Primary presentation:** Nodes and deployment units.
+
+| Element | Description |
+|--------|-------------|
+| **MVP** | Single deployment unit (e.g. AWS App Runner or equivalent): Next.js app (when UI) + API routes; Python CrewAI service (subprocess or same host); SQLite (or file-based) storage. |
+| **Scaling path** | Horizontal scaling of app/API; CrewAI workers; DB migration to PostgreSQL, read replicas/sharding when needed (§7). |
+| **Environments** | Staging and production; secrets and config via env; no secrets in code or artifacts. |
+| **CI/CD** | GitHub Actions (or org standard); build, test, deploy; gates and rollback per §5. |
+
+**Rationale:** Single deployment for MVP minimizes complexity; separation points (API, crew, DB) documented for future scaling.
+
+### Data View
+
+**Primary presentation:** Key data and flow between components.
+
+| Element | Description |
+|--------|-------------|
+| **Inputs** | Campaign context, brief paths, options (user/API); PRD/SAD/SFS (context). |
+| **Artifacts** | Plans (schema-valid), sentiment results, trend summaries, reports (P1); file or DB per schema; temp-write-then-atomic-replace. |
+| **Sessions** | When UI: conversation/session metadata; retention and cleanup per policy. |
+| **External** | Sentiment API responses; trend/data source outputs; rate-limited, env-configured. |
+| **Audit** | Artifact Audit block (persona, task, model, temperature, token usage); Trace Log under project-context/2.build/logs. |
+
+**Rationale:** Data model supports F1–F4, reproducibility, and compliance; no secrets in artifacts or logs.
+
+**Correspondence rules:** Logical view elements map to §2 (agents, crew), §4 (API, CrewAI layer, DB). Process view maps to §2 (orchestration), §6 (data flow). Deployment view maps to §5. Data view maps to §4 (DB), §6 (flows), adapter (audit).
 
 ---
 
@@ -212,6 +293,52 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 - **Token usage:** max_iter and context limits per adapter; token usage recorded in Audit; optimization of prompts and context size.
 - **Cost:** Rate limits and timeouts to control LLM and external API cost; budget alerting and monitoring (MRD §4).
 
+### Quality Attributes Summary
+
+| Quality attribute | Priority | Scenario / target | Addressed in |
+|-------------------|----------|--------------------|--------------|
+| **Performance** | High | Interactive tasks (e.g. plan creation, single analysis) &lt; 30s; streaming for perceived latency | §7; §2 (max_iter, time limits); §6 (streaming) |
+| **Scalability** | Medium | MVP: single instance; path to horizontal scaling, DB read replicas/sharding | §7; Deployment View |
+| **Security** | High | No secrets in artifacts/logs; auth per org; input validation; encryption in transit/at rest | §8; §4 (Auth & Security) |
+| **Modifiability** | High | Agent/task config in YAML; adapter contract; clear separation API / CrewAI / storage | §2; §4; Logical View |
+| **Testability** | High | Unit (API, logic); integration (API + CrewAI); E2E when UI; artifact schema/guardrails | §9 |
+| **Availability** | Medium | 99%+ target for MVP per PRD §5; health checks, monitoring, rollback | §5; §7 |
+| **Usability** | High | Clear human–agent boundary; errors surface as diagnostics; WCAG when UI | §3; §6; PRD §6 |
+| **Auditability** | High | Audit block in artifacts; Trace Log; Prompt Trace; provenance and template compliance | §2; §4; adapter rules |
+
+**Rationale:** Priorities align with PRD NFRs (§5), MRD production requirements, and AAMAD reproducibility/audit requirements.
+
+---
+
+## Constraints
+
+| Constraint | Source | Effect |
+|------------|--------|--------|
+| **CrewAI as execution framework** | PRD §3; AAMAD_ADAPTER=crewai | Agents, tasks, and tools must conform to adapter-crewai.mdc; YAML config; no inline agent/task code. |
+| **No secrets in artifacts or logs** | PRD §5; AAMAD core; adapter | All sensitive config (API keys, model secrets) from environment variables only; no embedding in plans, reports, or Trace Log. |
+| **Single primary crew for MVP** | PRD §3, Assumptions | No delegation; sequential flow; optional reporting crew deferred to P1. |
+| **P0 scope (F1–F4)** | PRD §4, §8 | MVP delivers multi-talent plans, sentiment analysis, trend insights, integrated workflow only; F5–F10 deferred. |
+| **Schema and template compliance** | Adapter; AAMAD | Expected outputs with required headings; self-check and guardrails; Diagnostic on failure; no code fences around machine-parsed sections. |
+| **Org standards** | SAD references | Cloud provider, auth, compliance, backup/DR, and incident response follow org policy where specified. |
+| **External API rate limits and cost** | MRD §2, risk matrix | Sentiment and trend integrations must respect rate limits and timeouts; usage monitored; fallback or graceful degradation. |
+
+**Rationale:** Constraints ensure reproducibility, security, and alignment with PRD/MRD and adapter contract; deviations must be documented and justified.
+
+---
+
+## Architectural Risks
+
+| Risk | Level | Description | Mitigation |
+|------|-------|-------------|------------|
+| **External API cost/availability** | High | Sentiment and trend APIs may be costly or unavailable; impacts crew completion and cost | Rate limits, timeouts, fallbacks; env-based config; usage monitoring; MRD risk matrix. |
+| **Scope creep / unclear MVP** | High | Feature creep delays launch and obscures value | Lock P0 (F1–F4) per PRD; defer P1/P2 to later phases; MVP Scope Boundaries in SAD. |
+| **LLM latency/cost** | Medium | Model calls drive latency and cost; context overflow possible | max_iter and time limits per adapter; token usage in Audit; optimize prompts; monitor usage (§7). |
+| **User adoption and trust** | Medium | Agencies may resist tool change or doubt outputs | Beta with 2–5 teams; clear ROI narrative; phased rollout; human-in-the-loop for approvals (PRD §6). |
+| **Calendar/brief format fragmentation** | Low | F7 (P1) integrations may face diverse formats | Define preferred formats in SAD when F7 is adopted; optional F7. |
+| **Data and compliance** | Medium | User data handling must meet privacy (e.g. GDPR) and retention | Data Privacy & Compliance §8; retention and deletion policies; consent where required. |
+
+**Traceability:** Risks align with MRD Risk Assessment Matrix and PRD §8 Risk Mitigation; ownership and review per org.
+
 ---
 
 ## 8. Security & Compliance Architecture
@@ -312,6 +439,7 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 - [x] CI/CD and monitoring support rapid iteration and deployment.
 - [x] Analytics and feedback support launch and improvement (PRD §7, §9).
 - [x] Architecture supports transition from MVP to full production (phases and scaling path).
+- [x] SAD completeness (stakeholders/concerns, views, quality attributes, decisions, constraints, risks) validated per [validation-sad-completeness.md](validation-sad-completeness.md) (ISO/IEC/IEEE 42010, Views and Beyond).
 
 ---
 
@@ -325,27 +453,38 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 
 ---
 
-## Assumptions
+## Assumptions (for downstream resolution)
 
-*For downstream resolution, see [assumptions-and-open-questions.md](assumptions-and-open-questions.md).*
+The following assumptions are recorded here and in the shared register [assumptions-and-open-questions.md](assumptions-and-open-questions.md). When resolved, update that register with artifact reference and date; SAD remains the architecture reference.
 
-- MVP may deliver CLI or minimal UI; full Next.js + assistant-ui is Phase 2/3 (PRD §6, §8).
-- Sentiment and trend data sources and APIs are selected in implementation with rate limits and cost validated (PRD Open Questions).
-- Single primary crew (plan + sentiment + trends) is sufficient for MVP; optional reporting crew is P1 (PRD Assumptions).
-- AAMAD_ADAPTER=crewai for this release; architecture aligns with CrewAI runtime semantics (system-arch.md).
-- Org standards apply for cloud provider, auth, and compliance; SAD references them where specific choices are deferred.
+| ID | Assumption | Downstream owner |
+|----|------------|------------------|
+| A1 | Target users are agency/content strategists and campaign managers; market size and persona details are inferred (no deep research report). | Product / MRD update (optional) |
+| A2 | CrewAI is the execution framework; agent list and tools are finalized in SAD and adapter config (config/agents.yaml, config/tasks.yaml). | SAD, adapter config ✓ (this document) |
+| A3 | MVP can start with CLI or minimal UI; full web/mobile UX is P1/P2 (PRD §6, §8). | Frontend, SAD ✓ (this document) |
+| A4 | Sentiment and trend data sources will be chosen in implementation with security and cost constraints; SAD defines integration pattern and rate-limit policy. | Backend / Integration |
+| A5 | One primary crew (plan + sentiment + trends) is sufficient for MVP; optional reporting crew is P1 (PRD Assumptions). | SAD ✓ (this document) |
+| A6 | MVP success criteria: core crew stable, P0 (F1–F4) complete, NFRs met; beta feedback will refine priorities. | QA, project plan |
+| A7 | AAMAD_ADAPTER=crewai for this release; architecture aligns with CrewAI runtime semantics. | SAD ✓ (this document) |
+| A8 | Org standards apply for cloud provider, auth, compliance, backup/DR; SAD references them where specific choices are deferred. | Ops, project plan |
 
 ---
 
-## Open Questions
+## Open Questions (for downstream resolution)
 
-*For downstream resolution, see [assumptions-and-open-questions.md](assumptions-and-open-questions.md).*
+The following open questions are recorded here and in [assumptions-and-open-questions.md](assumptions-and-open-questions.md). Resolve in the owning artifact and log resolution in that register.
 
-- Exact sentiment and trend APIs/sources, rate limits, and cost (PRD Open Questions; MRD).
-- Preferred calendar/brief formats and systems for F7 (P1) (PRD Open Questions).
-- Geographic and language scope for v1 (PRD, MRD).
-- Formal ROI model and baseline metrics for efficiency and manual workload (MRD Open Questions).
-- Timeline and milestones (project plan).
+| ID | Open question | Downstream owner |
+|----|----------------|------------------|
+| Q1 | Exact sentiment and trend APIs/sources and their rate limits and cost. | SAD (integration pattern), Backend/Integration, budgeting |
+| Q2 | Preferred calendar/brief formats and systems for F7 (P1). | SAD (when F7 adopted), Integration |
+| Q3 | Geographic and language scope for v1. | Product / SAD (i18n, data residency) |
+| Q4 | Formal ROI model and baseline metrics for “efficiency” and “manual workload.” | Product / project plan, sales |
+| Q5 | Timeline and milestones. | Project plan |
+| Q6 | Specific health-check endpoints and SLO thresholds for API and crew runs. | SAD §5/§7, Ops |
+| Q7 | NextAuth.js (or equivalent) provider and scopes when multi-user is required. | SAD §8, Frontend/Backend |
+
+**Note:** When Q1 or Q2 are resolved, update the SAD sections on External Integration (§6) and Constraints as needed.
 
 ---
 

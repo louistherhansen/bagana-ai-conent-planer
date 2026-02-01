@@ -1,0 +1,24 @@
+# BAGANA AI — CrewAI task definitions (stub)
+# Source: PRD §3, SAD §2; adapter: .cursor/rules/adapter-crewai.mdc
+# Backend epic: add description, expected_output (path + headings), context, agent ref; bind to crew.
+
+tasks:
+  plan_content:
+    agent: content_planner
+    description: "[Backend: define] Produce structured content plan from campaign context and constraints."
+    expected_output: "[Backend: target path + required template headings; no code fences]"
+    # context: PRD, SAD, user input; placeholders {campaign_id}, {brief_path} bound at runtime
+
+  analyze_sentiment:
+    agent: sentiment_analyst
+    description: "[Backend: define] Analyze content/briefs for sentiment and tone; surface risks and opportunities."
+    expected_output: "[Backend: target path + required template headings]"
+    # context: plan output, brief paths
+
+  research_trends:
+    agent: trend_researcher
+    description: "[Backend: define] Gather and summarize market/trend insights for plans and briefs."
+    expected_output: "[Backend: target path + required template headings]"
+    # context: plan output, campaign context
+
+  # report_summarize: P1; agent report_summarizer; context: plan + sentiment + trend outputs

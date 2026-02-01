@@ -86,16 +86,23 @@ flowchart LR
     │   ├─ prompts/   # Phase-specific agent prompts
     │   ├─ rules/     # AAMAD core, workflow, adapter (CrewAI), epics
     │   └─ templates/ # MRD, PRD, SAD generation templates
+    ├─ config/        # CrewAI agent and task config (SAD §2)
+    │   ├─ agents.yaml
+    │   └─ tasks.yaml
+    ├─ crew/          # Python CrewAI orchestration layer (SAD §4)
+    │   ├─ __init__.py
+    │   └─ run.py     # Entrypoint; Backend implements kickoff
     ├─ project-context/
     │   ├─ 1.define/  # mrd, prd, sad, handoff-approval, assumptions-and-open-questions, validation-completeness
-    │   ├─ 2.build/   # Setup, frontend, backend, integration, QA artifacts
+    │   ├─ 2.build/   # setup.md, logs/, frontend/backend/integration/qa artifacts
     │   └─ 3.deliver/ # QA logs, deploy configs, release notes
-    ├─ env.example    # Env template (copy to .env); AAMAD_ADAPTER=crewai
+    ├─ env.example    # Env template (copy to .env); AAMAD_ADAPTER, LLM, integrations
+    ├─ requirements.txt # Python deps: crewai, pyyaml (CrewAI layer)
     ├─ Usecase.txt    # BAGANA AI use case (source for PRD)
     ├─ CHECKLIST.md   # Step-by-step execution guide
     └─ README.md      # This file
 
-**Framework artifacts** in `.cursor/` are the AAMAD rules and templates. **project-context/** holds BAGANA AI–specific outputs (MRD, PRD, SAD, build artifacts).
+**Framework artifacts** in `.cursor/` are the AAMAD rules and templates. **project-context/** holds BAGANA AI–specific outputs (MRD, PRD, SAD, [setup](project-context/2.build/setup.md), build artifacts). **config/** and **crew/** form the CrewAI skeleton; Backend epic implements orchestration and tools.
 
 ---
 
@@ -106,11 +113,12 @@ flowchart LR
    git clone https://github.com/louistherhansen/bagana-ai-conent-planer.git
    cd bagana-ai-conent-planer
    ```
-2. **Set environment:** Add `AAMAD_ADAPTER=crewai` to your environment (current default multi-agent framework). Copy [env.example](env.example) to `.env` and adjust, or set the variable in your shell/IDE.
-3. Ensure `.cursor/` contains the full agent, prompt, and rule set (included in repo).
-4. Follow [CHECKLIST.md](CHECKLIST.md) to run phases — e.g. *create-mrd*, *create-prd*, *create-sad*, *setup-project*, *develop-fe*, *develop-be* — using Cursor or another agent-enabled IDE.
-5. Each persona (e.g. `@project-mgr`, `@system-arch`, `@frontend.eng`, `@backend.eng`) runs its epic(s) and writes artifacts under `project-context/`.
-6. Review, test, and iterate toward the MVP defined in the PRD.
+2. **Set environment:** Copy [env.example](env.example) to `.env` and set `AAMAD_ADAPTER=crewai` (and LLM/integration vars when implementing). Do not commit `.env`.
+3. **Python (CrewAI layer):** Create a virtual environment and install dependencies: `pip install -r requirements.txt`. See [setup.md](project-context/2.build/setup.md).
+4. Ensure `.cursor/` contains the full agent, prompt, and rule set (included in repo).
+5. Follow [CHECKLIST.md](CHECKLIST.md) to run phases — e.g. *create-mrd*, *create-prd*, *create-sad*, *setup-project*, *develop-fe*, *develop-be* — using Cursor or another agent-enabled IDE.
+6. Each persona (e.g. `@project-mgr`, `@system-arch`, `@frontend.eng`, `@backend.eng`) runs its epic(s) and writes artifacts under `project-context/`.
+7. Review, test, and iterate toward the MVP defined in the PRD.
 
 ---
 
@@ -134,7 +142,7 @@ Each role is embodied by an agent persona, defined in `.cursor/agents/`.
 Phase 2 starts after [handoff approval](project-context/1.define/handoff-approval.md); run each epic in sequence per [CHECKLIST.md](CHECKLIST.md):
 
 - **Architecture:** System Architect generates [SAD](project-context/1.define/sad.md) (`*create-sad` with PRD, MRD, use case, [sad-template](.cursor/templates/sad-template.md)).
-- **Setup:** Scaffold environment, install dependencies, and document (`setup.md`)
+- **Setup:** Project Manager scaffolds environment per PRD/SAD: [setup.md](project-context/2.build/setup.md) documents `config/`, `crew/`, `requirements.txt`, env; Backend implements crew and tools.
 - **Frontend:** Build UI + placeholders, document (`frontend.md`)
 - **Backend:** Implement backend, document (`backend.md`)
 - **Integration:** Wire up chat flow, verify, document (`integration.md`)
