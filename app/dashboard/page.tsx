@@ -69,6 +69,7 @@ export default function DashboardPage() {
             description="Suggestions to optimize messaging and engagement based on sentiment and trend data."
             phase="P1"
             prdRef="F5"
+            href="/optimization"
             icon={IconSparkles}
           />
           <FeatureStub
@@ -76,6 +77,7 @@ export default function DashboardPage() {
             description="Optional integration with calendar/brief systems for import/export."
             phase="P1"
             prdRef="F7"
+            href="/calendar"
             icon={IconCalendar}
           />
           <FeatureStub

@@ -1,72 +1,206 @@
-# BAGANA AI — CrewAI task definitions
+# BAGANA AI — CrewAI task definitions (MVP: 3 core tasks)
 # Source: PRD §3, SAD §2; adapter: .cursor/rules/adapter-crewai.mdc
 # Context bindings resolved at runtime in crew/run.py.
+# MVP Flow per SAD §2: content_planner → (sentiment_analyst, trend_researcher) with shared plan context
+# Sequential execution for deterministic builds per adapter rules.
 
 tasks:
-  plan_content:
-    name: plan_content
+  create_content_plan:
+    name: create_content_plan
     agent: content_planner
     description: |
-      Produce a structured multi-talent content plan from the campaign context and user input.
+      Create a structured multi-talent content plan aligned to campaign objectives and constraints. 
+      The plan should include calendars, briefs, messaging, and talent assignments. This is the 
+      primary output that will be enriched by sentiment and trend analysis.
+      
       User input: {user_input}
-      Use the provided campaign context, talents, and constraints to create a content plan with:
-      - Overview and objectives
-      - Talent assignments and content themes
-      - Timeline and milestones
-      - Key messaging and call-to-actions
-      Reference PRD F1 and SAD §2 for plan structure. Output plain Markdown; no code fences.
+      
+      Tasks:
+      1. Extract brand name, campaign context, and talent requirements from user input
+      2. Design content strategy framework with clear objectives and target audience
+      3. Assign multiple talents to specific content themes and formats
+      4. Create content calendar with timeline and distribution plan
+      5. Define key messaging pillars and narrative angles
+      6. Specify content formats (short-form video, long-form, live, carousel, educational)
+      7. Provide creative brief summaries for each talent assignment
+      
+      IMPORTANT: 
+      - Write the entire output in {output_language}. All content, headings, descriptions, messaging, and strategy must be in the specified language. Do not mix languages.
+      - Reference PRD F1 (Multi-talent content plans) and SAD §2 (Multi-Agent System Specification) for plan structure.
+      - Output plain Markdown format; NO code fences (triple backticks) around any sections. Use plain Markdown headings and formatting only.
+      - Ensure all required headings from expected_output are present; if missing, write Diagnostic section and halt.
+      - Create structured content plan with talent assignments, content themes, calendar, and messaging per PRD F1.
     expected_output: |
-      Content plan artifact at project-context/2.build/artifacts/plan.md with headings:
-      - Overview
+      Structured content plan artifact at project-context/2.build/artifacts/content_strategy.md containing:
+      - Content Strategy Overview (Objective, Audience, Platform)
+      - Brand Name and Campaign Context
+      - Core Messaging Pillars
+      - Key Narrative Angles & Story Frameworks
+      - Talent Assignments (multiple talents with specific roles)
+      - Content Themes and Topics
+      - Content Calendar and Timeline
+      - Key Messaging Guidelines
+      - Content Formats (Short Video, Long-form, Live, Carousel, Educational)
+      - Distribution Strategy
+      - Creative Brief Summary for Creators
+      
+      Artifact structure with headings:
+      - Strategic Overview
       - Objectives
       - Talent Assignments
       - Content Themes
-      - Timeline
+      - Content Calendar and Timeline
       - Key Messaging
+      - Content Formats
+      - Distribution Strategy
       - Audit
-      No code fences around machine-parsed sections.
-    output_file: project-context/2.build/artifacts/plan.md
+      
+      All content must be written in {output_language}. No code fences around machine-parsed sections. Use plain Markdown formatting.
+    output_file: project-context/2.build/artifacts/content_strategy.md
     create_directory: true
-    context: []  # First task; receives user input via inputs
+    context: []  # First task; receives brand input via inputs
 
   analyze_sentiment:
     name: analyze_sentiment
     agent: sentiment_analyst
     description: |
-      Analyze the content plan and any briefs for sentiment and tone.
-      Surface risks (e.g., negative tone, brand-safety concerns) and opportunities.
-      Use plan output from plan_content task as context.
-      Reference PRD F2. Output plain Markdown; no code fences.
+      Analyze the content plan for sentiment and tone; surface risks and opportunities. 
+      This analysis enriches the content plan with sentiment insights to ensure messaging 
+      aligns with audience expectations and brand safety requirements.
+      
+      Use content plan output as context.
+      
+      Tasks:
+      1. Compute overall sentiment composition as percentages that sum to 100: Positive %, Neutral %, Negative % (e.g. 60% Positif, 30% Netral, 10% Negatif). This will be used for a Pie Chart. Output this as the FIRST LINE: "Sentiment Composition (Pie Chart): Positive X%, Neutral Y%, Negative Z%"
+      2. Create main heading: "# Sentiment and Risk Analysis Report for [Brand Name]"
+      3. Analyze sentiment trends related to the brand and product category; include Overall Sentiment Score with confidence level
+      4. List Key Positive Sentiment Drivers and Key Negative Sentiment Triggers
+      5. Identify potential reputational risks, controversies, or sensitive narratives
+      6. Assess audience sentiment polarity and volatility risk; document Audience Sensitivity Areas
+      7. Evaluate platform-specific sentiment risks (YouTube, Instagram, TikTok, X, LinkedIn) with risk level (Low/Medium/High) for each platform
+      8. Detect misinformation, exaggerated claims, or misunderstood product positioning risks; provide Misinformation & Claim Risk Assessment
+      9. Flag legal, ethical, or cultural sensitivities relevant to the campaign; document Cultural, Legal, or Ethical Risk Flags
+      10. Classify overall Risk Severity (Low / Medium / High)
+      11. Provide actionable mitigation recommendations for content strategy
+      12. Include Go / Caution / No-Go Recommendation for Influencer Endorsement with rationale
+      
+      Follow the exact structure and format from sentiment_risk.md artifact as reference template.
+      
+      IMPORTANT: 
+      - At the start of your output, include a single line for Pie Chart: "Sentiment Composition (Pie Chart): Positive X%, Neutral Y%, Negative Z%" where X+Y+Z=100. Example: "Sentiment Composition (Pie Chart): Positive 60%, Neutral 30%, Negative 10%"
+      - Write the entire output in {output_language}. All content, headings, descriptions, and analysis must be in the specified language. Do not mix languages.
+      - Reference PRD F2 (Sentiment analysis) and SAD §2 (Multi-Agent System Specification).
+      - Output plain Markdown format; NO code fences (triple backticks) around any sections. Use plain Markdown headings and formatting only.
+      - Ensure all required headings from expected_output are present; if missing, write Diagnostic section and halt.
     expected_output: |
-      Sentiment analysis artifact at project-context/2.build/artifacts/sentiment.md with headings:
-      - Summary
-      - Risks
+      Sentiment analysis artifact at project-context/2.build/artifacts/sentiment.md containing:
+      - Sentiment Composition (Pie Chart): Positive X%, Neutral Y%, Negative Z% (X+Y+Z=100) — single line for UI Pie Chart (MUST be first line)
+      - Overall Sentiment Score with confidence level
+      - Key Positive Sentiment Drivers
+      - Key Negative Sentiment Triggers
+      - Audience Sensitivity Areas (e.g. pricing, safety, ethics, claims)
+      - Platform-Specific Risk Matrix (evaluate risks per platform: YouTube, Instagram, TikTok, X, LinkedIn)
+      - Potential Controversy Scenarios
+      - Misinformation & Claim Risk Assessment
+      - Cultural, Legal, or Ethical Risk Flags
+      - Risk Severity Classification (Low / Medium / High)
+      - Recommended Mitigation Actions
       - Opportunities
-      - Recommendations
-      - Audit
-      No code fences around machine-parsed sections.
+      - Recommendations (include Go / Caution / No-Go Recommendation for Influencer Endorsement)
+      
+      Artifact structure with headings (follow the structure from sentiment_risk.md):
+      - Sentiment Composition (Pie Chart): Positive X%, Neutral Y%, Negative Z% (first line, before any heading)
+      - # Sentiment and Risk Analysis Report for [Brand Name]
+      - ## Sentiment Summary
+        - Overall Sentiment Score: [Sentiment] ([Percentage]%) with confidence level: [Level]
+        - ### Key Positive Sentiment Drivers: (bullet list)
+        - ### Key Negative Sentiment Triggers: (bullet list)
+      - ## Identified Risks
+        - ### Audience Sensitivity Areas: (bullet list)
+        - ### Platform-Specific Risk Matrix: (evaluate each platform: YouTube, Instagram, TikTok, X, LinkedIn with risk level)
+        - ### Potential Controversy Scenarios: (bullet list)
+        - ### Misinformation & Claim Risk Assessment: (description)
+        - ### Cultural, Legal, or Ethical Risk Flags: (description)
+      - ## Risk Mitigation Strategies
+        - ### Risk Severity Classification: [Low / Medium / High]
+        - ### Recommended Mitigation Actions: (bullet list)
+      - ## Opportunities (description)
+      - ## Recommendations
+        - ### Go / Caution / No-Go Recommendation for Influencer Endorsement: [Recommendation with rationale]
+      - Closing statement summarizing the analysis purpose
+      
+      All content must be written in {output_language}. No code fences around machine-parsed sections. Use plain Markdown formatting only.
     output_file: project-context/2.build/artifacts/sentiment.md
     create_directory: true
-    context_from: [plan_content]  # Resolved to Task refs in code
+    context_from: [create_content_plan]  # Resolved to Task refs in code
 
   research_trends:
     name: research_trends
     agent: trend_researcher
     description: |
-      Gather and summarize relevant market/trend insights for the content plan.
-      Use plan output from plan_content task as context.
-      Reference PRD F3. Focus on creator economy and content strategy trends.
-      Output plain Markdown; no code fences.
+      Gather and summarize relevant market/trend insights for the content plan. 
+      This analysis ensures the campaign is timely, relevant, and positioned within 
+      existing conversations and market momentum.
+      
+      Use content plan output as context.
+      
+      Tasks:
+      1. Identify macro and micro trends relevant to the product category and campaign objective
+      2. Generate Summary Bar Chart Data: Create summary values for key trends. Format: "Trend Name | Value" where Value is 0-100 (trend strength/interest level). Include all major trends identified. Place this section after "Key Market Trends" heading.
+      3. Analyze audience interest patterns and content consumption behavior across platforms
+      4. Evaluate platform-specific trend velocity (YouTube, Instagram, TikTok, LinkedIn, X)
+      5. Assess seasonal, cultural, or event-based timing opportunities
+      6. Benchmark competitor or category-level campaign patterns
+      7. Determine content format trends (short-form, long-form, live, carousel, educational)
+      8. Provide strategic recommendations for trend adoption or avoidance
+      9. Generate Trend Line Chart Data: Create time-series data showing trend progression over time periods (e.g., past 6 months or next 6 months). Format: "Trend Name | Period1:Value1, Period2:Value2, Period3:Value3, ..." where values are 0-100 (trend strength/interest level). Include at least 2-3 key trends with their progression data.
+      
+      Follow the exact structure and format from trends_market.md artifact as reference template.
+      
+      IMPORTANT: 
+      - Write the entire output in {output_language}. All content, headings, descriptions, and analysis must be in the specified language. Do not mix languages.
+      - Reference PRD F3 (Market trend insights) and SAD §2 (Multi-Agent System Specification). Focus on creator economy and content strategy trends.
+      - Output plain Markdown format; NO code fences (triple backticks) around any sections. Use plain Markdown headings and formatting only.
+      - Ensure all required headings from expected_output are present; if missing, write Diagnostic section and halt.
+      - For Summary Bar Chart Data: Include a dedicated section "# Summary Bar Chart Data" with format: "Trend Name | Value" (one line per trend, values 0-100). Place this section after "Key Market Trends" heading. Example: "Cloud Adoption Rates Growing | 85"
+      - For Trend Line Chart Data: Include a dedicated section "Trend Line Chart Data" with format: "Trend Name | Period1:Value1, Period2:Value2, Period3:Value3, ..." (one line per trend). Values should be 0-100 representing trend strength/interest level over time. Example: "Short-form Video Content | Jan:45, Feb:52, Mar:58, Apr:65, May:72, Jun:78"
     expected_output: |
-      Trend insights artifact at project-context/2.build/artifacts/trends.md with headings:
-      - Key Trends
-      - Implications for Plan
-      - Recommendations
-      - Sources
-      - Audit
-      No code fences around machine-parsed sections.
+      Market trends artifact at project-context/2.build/artifacts/trends.md containing:
+      - Key Market Trends Relevant to the Product Category (numbered list with bold trend names)
+      - Summary Bar Chart Data (required: format "Trend Name | Value" where Value is 0-100, one line per trend)
+      - Creator Economy Insights (numbered list)
+      - Competitive Landscape (numbered list)
+      - Content Format Trends (numbered list)
+      - Timing and Seasonality (numbered list)
+      - Implications for Strategy (numbered list)
+      - Recommendations (numbered list)
+      - Sources (bullet list)
+      - Audit (text summary)
+      
+      Artifact structure with headings (follow the structure from trends_market.md):
+      - # Key Market Trends
+        - Numbered list items with format: "1. **Trend Name**: Description"
+      - # Summary Bar Chart Data (REQUIRED: place after Key Market Trends)
+        - Format: "Trend Name | Value" (one line per trend, values 0-100)
+        - Example: "Cloud Adoption Rates Growing | 85"
+      - # Creator Economy Insights
+        - Numbered list items with format: "1. **Insight Name**: Description"
+      - # Competitive Landscape
+        - Numbered list items with format: "1. **Trend Name**: Description"
+      - # Content Format Trends
+        - Numbered list items with format: "1. **Format Name**: Description"
+      - # Timing and Seasonality
+        - Numbered list items with format: "1. **Timing Opportunity**: Description"
+      - # Implications for Strategy
+        - Numbered list items with format: "1. **Strategic Implication**: Description"
+      - # Recommendations
+        - Numbered list items with format: "1. **Recommendation**: Description"
+      - # Sources
+        - Bullet list of sources
+      - # Audit
+        - Text summary of the analysis
+      
+      All content must be written in {output_language}. No code fences around machine-parsed sections. Use plain Markdown formatting only.
     output_file: project-context/2.build/artifacts/trends.md
     create_directory: true
-    context_from: [plan_content]  # Resolved to Task refs in code
-
-  # report_summarize: P1; agent report_summarizer; context: plan + sentiment + trend outputs
+    context_from: [create_content_plan]  # Resolved to Task refs in code

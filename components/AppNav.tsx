@@ -1,42 +1,187 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-
-type NavItem = {
-  href: string;
-  label: string;
-  active?: boolean;
-};
+import { useState, useEffect, useRef } from "react";
+import { getNavItems, type NavItem } from "@/lib/nav-config";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export function AppNav({
   items,
   currentPath,
+  dynamic = false,
 }: {
-  items: NavItem[];
+  items?: NavItem[];
   currentPath?: string;
+  dynamic?: boolean;
 }) {
+  const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const navLinks = (
-    <>
-      {items.map((item) => {
-        const isActive = currentPath === item.href;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => setMobileOpen(false)}
-            className={`text-sm font-medium transition-colors touch-target flex items-center ${
+  // Initialize with items if provided, otherwise use dynamic items if dynamic mode is enabled
+  const [navItems, setNavItems] = useState<NavItem[]>(() => {
+    if (items) return items;
+    if (dynamic) return getNavItems();
+    return [];
+  });
+
+  // Update nav items when items prop or dynamic mode changes
+  useEffect(() => {
+    if (items) {
+      // If items prop is provided, use it (takes precedence)
+      setNavItems(items);
+    } else if (dynamic) {
+      // Otherwise, use dynamic items if dynamic mode is enabled
+      setNavItems(getNavItems());
+    } else {
+      // Fallback to empty array
+      setNavItems([]);
+    }
+  }, [dynamic, items]);
+
+  // Close dropdown when clicking outside (for mobile/click mode)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      // Check if click is outside all dropdowns
+      const dropdowns = document.querySelectorAll('[data-dropdown]');
+      let isInsideDropdown = false;
+      dropdowns.forEach((dropdown) => {
+        if (dropdown.contains(target)) {
+          isInsideDropdown = true;
+        }
+      });
+      if (!isInsideDropdown && openDropdown) {
+        setOpenDropdown(null);
+      }
+    };
+
+    if (openDropdown) {
+      // Only add listener for mobile/click interactions
+      // Hover interactions are handled by onMouseLeave
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openDropdown]);
+
+  const isSubmenuActive = (item: NavItem): boolean => {
+    if (!item.submenu) return false;
+    return item.submenu.some(subItem => currentPath === subItem.href);
+  };
+
+  const renderNavItem = (item: NavItem, isMobile = false) => {
+    const isActive = currentPath === item.href || isSubmenuActive(item);
+    const hasSubmenu = item.submenu && item.submenu.length > 0;
+
+    if (hasSubmenu) {
+      return (
+        <div 
+          key={item.href} 
+          className="relative" 
+          data-dropdown={item.href}
+          ref={isMobile ? null : dropdownRef}
+          onMouseEnter={() => !isMobile && setOpenDropdown(item.href)}
+          onMouseLeave={() => !isMobile && setOpenDropdown(null)}
+        >
+          <button
+            onClick={() => {
+              if (isMobile) {
+                setOpenDropdown(openDropdown === item.href ? null : item.href);
+              } else {
+                setOpenDropdown(openDropdown === item.href ? null : item.href);
+              }
+            }}
+            className={`text-sm font-medium transition-colors touch-target flex items-center gap-1.5 ${
               isActive
                 ? "text-bagana-primary border-b-2 border-bagana-primary pb-0.5"
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
             {item.label}
-          </Link>
-        );
-      })}
+            <svg
+              className={`w-4 h-4 transition-transform ${openDropdown === item.href ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            {item.badge && (
+              <span className="ml-1 px-1.5 py-0.5 text-xs font-semibold rounded-full bg-bagana-primary/10 text-bagana-primary">
+                {item.badge}
+              </span>
+            )}
+          </button>
+          {openDropdown === item.href && (
+            <div
+              className={`${
+                isMobile
+                  ? "mt-2 ml-4 space-y-1"
+                  : "absolute top-full left-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg py-2 z-50"
+              }`}
+            >
+              {item.submenu
+                ?.filter(subItem => subItem.visible !== false)
+                .map((subItem) => {
+                  const isSubActive = currentPath === subItem.href;
+                  return (
+                    <Link
+                      key={subItem.href}
+                      href={subItem.href}
+                      onClick={() => {
+                        setMobileOpen(false);
+                        setOpenDropdown(null);
+                      }}
+                      className={`block px-4 py-2 text-sm transition-colors ${
+                        isSubActive
+                          ? "text-bagana-primary bg-bagana-primary/5 font-medium"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      }`}
+                    >
+                      {subItem.label}
+                    </Link>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={() => setMobileOpen(false)}
+        className={`text-sm font-medium transition-colors touch-target flex items-center gap-1.5 ${
+          isActive
+            ? "text-bagana-primary border-b-2 border-bagana-primary pb-0.5"
+            : "text-slate-500 hover:text-slate-700"
+        }`}
+      >
+        {item.label}
+        {item.badge && (
+          <span className="ml-1 px-1.5 py-0.5 text-xs font-semibold rounded-full bg-bagana-primary/10 text-bagana-primary">
+            {item.badge}
+          </span>
+        )}
+      </Link>
+    );
+  };
+
+  const navLinks = (
+    <>
+      {navItems.map((item) => renderNavItem(item, false))}
+    </>
+  );
+
+  const mobileNavLinks = (
+    <>
+      {navItems.map((item) => renderNavItem(item, true))}
     </>
   );
 
@@ -45,6 +190,24 @@ export function AppNav({
       {/* Desktop nav */}
       <nav className="hidden lg:flex flex-wrap gap-4 xl:gap-6 items-center">
         {navLinks}
+        {user ? (
+          <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
+            <span className="text-sm text-slate-600">{user.username}</span>
+            <button
+              onClick={logout}
+              className="text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="text-sm font-medium text-bagana-primary hover:text-bagana-secondary transition-colors"
+          >
+            Login
+          </Link>
+        )}
       </nav>
 
       {/* Mobile: hamburger + overlay */}
@@ -75,10 +238,36 @@ export function AppNav({
               aria-hidden
             />
             <nav
-              className="fixed right-0 top-0 bottom-0 w-64 max-w-[85vw] bg-white border-l border-slate-200 shadow-xl z-50 flex flex-col gap-1 p-4 pt-16"
+              className="fixed right-0 top-0 bottom-0 w-64 max-w-[85vw] bg-white border-l border-slate-200 shadow-xl z-50 flex flex-col gap-1 p-4 pt-16 overflow-y-auto"
               aria-label="Mobile navigation"
             >
-              {navLinks}
+              {mobileNavLinks}
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                {user ? (
+                  <>
+                    <div className="px-4 py-2 text-sm text-slate-600">
+                      {user.username}
+                    </div>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setMobileOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-2 text-sm font-medium text-bagana-primary hover:bg-slate-50 transition-colors"
+                  >
+                    Login
+                  </Link>
+                )}
+              </div>
             </nav>
           </>
         )}
@@ -87,13 +276,6 @@ export function AppNav({
   );
 }
 
-export const MAIN_NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Home" },
-  { href: "/chat", label: "Chat" },
-  { href: "/dashboard", label: "Features" },
-  { href: "/plans", label: "Plans" },
-  { href: "/reports", label: "Reports" },
-  { href: "/sentiment", label: "Sentiment" },
-  { href: "/trends", label: "Trends" },
-  { href: "/settings", label: "Settings" },
-];
+// Legacy export for backward compatibility
+// Returns the nav items array (for compatibility with existing code)
+export const MAIN_NAV_ITEMS = getNavItems();

@@ -31,6 +31,30 @@ def trend_schema_validator(content: str) -> str:
     return "Validation passed. Schema structure confirmed. (Stub)"
 
 
+@tool("Validate product intelligence schema")
+def product_intelligence_schema_validator(content: str) -> str:
+    """Validate that product intelligence output follows the expected schema (Product Overview, Key Features, Target Audience, etc.). Returns validation result. Stub: accepts any content."""
+    if not content or not content.strip():
+        return "Validation failed: empty content."
+    return "Validation passed. Schema structure confirmed. (Stub)"
+
+
+@tool("Validate brand safety compliance schema")
+def brand_safety_schema_validator(content: str) -> str:
+    """Validate that brand safety compliance output follows the expected schema (Compliance Summary, Brand Safety Assessment, etc.). Returns validation result. Stub: accepts any content."""
+    if not content or not content.strip():
+        return "Validation failed: empty content."
+    return "Validation passed. Schema structure confirmed. (Stub)"
+
+
+@tool("Validate executive summary schema")
+def executive_summary_schema_validator(content: str) -> str:
+    """Validate that executive summary output follows the expected schema (Executive Summary, Campaign Overview, Strategic Assessment, Risk Analysis, Compliance Status, Recommendations, Decision Record, Audit). Returns validation result. Stub: accepts any content."""
+    if not content or not content.strip():
+        return "Validation failed: empty content."
+    return "Validation passed. Schema structure confirmed. (Stub)"
+
+
 # --- P1 stubs (report_summarizer, F6) ---
 
 

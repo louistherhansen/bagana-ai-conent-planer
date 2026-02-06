@@ -29,7 +29,7 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 | **Trace Log** | Done | step_callback writes to project-context/2.build/logs/trace.log |
 | **Audit block** | Deferred | To be appended by agents to artifact outputs (P1) |
 
-**Verdict:** CrewAI backend scaffolded and operational. Run `python -m crew.run [message]` to execute crew. Requires OPENAI_API_KEY in .env.
+**Verdict:** CrewAI backend scaffolded and operational. Run `python -m crew.run [message]` to execute crew. Requires LLM API key in `.env` (OpenRouter: §10.1; or `OPENAI_API_KEY` for direct OpenAI).
 
 ---
 
@@ -136,7 +136,7 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 - trend_researcher → market trend insights ✓ (concept)  
 - Single crew for integrated workflow ✓ (design)
 
-Implementation complete; crew.kickoff() executes plan → sentiment → trends workflow. Requires OPENAI_API_KEY.
+Implementation complete; crew.kickoff() executes plan → sentiment → trends workflow. Requires LLM API key in `.env` (OpenRouter: §10.1).
 
 ---
 
@@ -254,8 +254,24 @@ HTTP 500 on crew failure or timeout.
 
 ### Prerequisites
 
-- `OPENAI_API_KEY` in `.env`
+- **LLM API key** in `.env` (see §10.1 below).
 - Python with crewai installed; `python` or `python3` in PATH
+
+### 10.1 LLM / API key configuration (OpenRouter)
+
+CrewAI agents use an LLM; BAGANA supports **OpenRouter** (and direct OpenAI). Do not commit API keys; use environment variables only.
+
+**Get an API key:** [OpenRouter → Settings → Keys](https://openrouter.ai/settings/keys). Create a key and copy it into `.env` (never into this doc or code).
+
+**Required env vars when using OpenRouter:**
+
+| Variable | Example / description |
+|----------|------------------------|
+| `OPENROUTER_API_KEY` | Your key from OpenRouter (starts with `sk-or-v1-...`). The crew uses this as the LLM API key when set. |
+| `OPENAI_BASE_URL` | `https://openrouter.ai/api/v1` |
+| `OPENAI_MODEL` | `openai/gpt-4o-mini` (or another [OpenRouter model](https://openrouter.ai/docs#models)) |
+
+**Alternative:** You can set `OPENAI_API_KEY` to your OpenRouter key instead of `OPENROUTER_API_KEY`; then also set `OPENAI_BASE_URL` and `OPENAI_MODEL` as above. The crew prefers `OPENROUTER_API_KEY` when present and maps it to the LLM client.
 
 ---
 
@@ -290,6 +306,7 @@ HTTP 500 on crew failure or timeout.
 - Sentiment and trend tools can be stubs (no real API calls) per prohibited-actions; env placeholders remain for future.
 - report_summarizer and F5–F10 are P1/P2; not in scope for *develop-be.
 - API route (app/api/crew/route.ts) is scaffolded by Frontend; Backend provides the Python interface for Integration to call.
+- LLM API key: use OpenRouter (OPENROUTER_API_KEY + OPENAI_BASE_URL + OPENAI_MODEL per §10.1) or OPENAI_API_KEY; never embed keys in artifacts.
 
 ---
 

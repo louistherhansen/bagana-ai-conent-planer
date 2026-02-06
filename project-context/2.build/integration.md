@@ -27,7 +27,7 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 | **Abort/cancel** | Done | crewAdapter passes abortSignal to fetch |
 | **Streaming** | Not implemented | P1 per backend.md; full JSON after crew completes |
 
-**Verdict:** MVP chat flow is wired end-to-end. User message → /api/crew → CrewAI crew.kickoff() → JSON response → assistant reply. Prerequisites: OPENAI_API_KEY in .env; Python with crewai on PATH.
+**Verdict:** MVP chat flow is wired end-to-end. User message → /api/crew → CrewAI crew.kickoff() → JSON response → assistant reply. Prerequisites: OPENAI_API_KEY in .env (or OpenRouter: OPENAI_API_KEY + OPENAI_BASE_URL + OPENAI_MODEL per §7.6); Python with crewai on PATH.
 
 ---
 
@@ -99,7 +99,7 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 
 ### 7.2 Manual verification steps
 
-1. Set OPENAI_API_KEY in .env.
+1. Set OPENAI_API_KEY in .env. For OpenRouter, also set OPENAI_BASE_URL and OPENAI_MODEL (see §7.6).
 2. From repo root: npm run dev (Next.js); ensure Python has crewai and can run `python -m crew.run --stdin`.
 3. Open /chat; send a message (e.g. "Create a content plan for a summer campaign.").
 4. Expect: request to POST /api/crew; after crew run (may take 30s–2 min), assistant message shows crew output or an error message.
@@ -135,14 +135,24 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 - Long crew runs may hit 120s timeout; user sees timeout error.
 - No streaming; user sees loading until full response.
 
+### 7.6 OpenRouter (optional LLM provider)
+
+To use [OpenRouter](https://openrouter.ai) instead of OpenAI, set in `.env` (do not commit `.env`):
+
+- **OPENAI_API_KEY** — set to your OpenRouter API key (e.g. from openrouter.ai keys).
+- **OPENAI_BASE_URL** — `https://openrouter.ai/api/v1`
+- **OPENAI_MODEL** — e.g. `openai/gpt-4o-mini`
+
+CrewAI/litellm read these env vars when `llm: openai` is used in agent config. Documented in `env.example`. No code changes required.
+
 ---
 
 ## 8. Known Issues
 
 | Issue | Severity | Behavior | Mitigation |
 |-------|----------|-----------|------------|
-| **Invalid or expired OPENAI_API_KEY** | High | Crew returns 401; Python writes error to stderr and JSON `{"status":"error","error":"..."}` to stdout. Frontend shows "Crew error: ...". | Set valid OPENAI_API_KEY in .env; do not commit keys. |
-| **Missing OPENAI_API_KEY** | High | Crew/LLM calls fail; same JSON error response. | Ensure .env exists and OPENAI_API_KEY is set before running crew or chat. |
+| **Invalid or expired OPENAI_API_KEY** | High | Crew returns 401; Python writes error to stderr and JSON `{"status":"error","error":"..."}` to stdout. Frontend shows "Crew error: ...". | Set valid OPENAI_API_KEY in .env (or OpenRouter key when using OpenRouter); do not commit keys. |
+| **Missing OPENAI_API_KEY** | High | Crew/LLM calls fail; same JSON error response. | Ensure .env exists and OPENAI_API_KEY is set before running crew or chat. When using OpenRouter, also set OPENAI_BASE_URL and OPENAI_MODEL (§7.6). |
 | **120s timeout** | Medium | Full crew run (plan → sentiment → trend) can exceed 120s; API returns 500; frontend shows "Error: Crew timed out...". | Increase CREW_TIMEOUT_MS in app/api/crew/route.ts or add env override (P1). |
 | **No streaming** | Medium | User sees loading until full response; long runs feel unresponsive. | P1: implement streaming from crew to API to client (SAD §6). |
 | **Python not on PATH or wrong name** | Medium | API spawn fails; "Failed to start crew" or process error. Frontend shows "Error: ...". | Use `python` (Windows) or `python3` (Unix) per route.ts; ensure crewai installed in that env. |
@@ -190,7 +200,7 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 ## Assumptions
 
 - Backend and frontend artifacts (backend.md, frontend.md) accurately describe the implemented code.
-- OPENAI_API_KEY and Python environment are operator responsibility; not validated in this review.
+- OPENAI_API_KEY (or OpenRouter key + OPENAI_BASE_URL + OPENAI_MODEL) and Python environment are operator responsibility; not validated in this review.
 - MVP scope is chat flow only; no other API or third-party integration required for this epic.
 
 ---
@@ -209,5 +219,6 @@ BAGANA AI is an AI-powered platform designed for KOL, influencer, and content cr
 | 2025-02-02 | @integration.eng  | *verify-messageflow |
 | 2025-02-02 | @integration.eng  | *log-integration |
 | 2025-02-02 | @integration.eng  | Round-trip test; Known issues §8; test script scripts/test-chat-roundtrip.mjs |
+| 2025-02-02 | @integration.eng  | OpenRouter env config §7.6; env.example OPENAI_BASE_URL, OPENAI_MODEL |
 
 Integration review complete. MVP chat flow wired; backend JSON contract verified; round-trip procedure and known issues documented. No code fences around machine-parsed sections.

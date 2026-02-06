@@ -1,32 +1,33 @@
 import { PageLayout } from "@/components/PageLayout";
 import { IconChart } from "@/components/icons";
-import Link from "next/link";
+import { ReportsDashboardView } from "@/components/ReportsDashboardView";
 
+/**
+ * Reports & Dashboards (F6 — P1): Summaries and reports from plan + sentiment + trend outputs for stakeholders.
+ * PRD F6; SAD P1; frontend only — no backend wiring (P1 epic).
+ */
 export default function ReportsPage() {
   return (
     <PageLayout currentPath="/reports">
-      <div className="flex flex-col items-center justify-center px-4 py-16 min-h-[60vh]">
-        <div className="max-w-md text-center">
-          <div className="mb-6 inline-flex items-center justify-center w-16 h-16 rounded-full bg-bagana-muted/50 text-bagana-primary">
-            {IconChart}
+      <div className="flex flex-col flex-1 min-h-0 max-w-5xl mx-auto w-full px-4 sm:px-6 py-6">
+        <header className="mb-6 shrink-0">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-bagana-muted/50 text-bagana-primary">
+              {IconChart}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800">Reports & Dashboards</h1>
+              <p className="text-sm text-slate-500">F6 — P1</p>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">
-            Reports &amp; Dashboards
-          </h2>
-          <p className="text-slate-600 mb-6">
-            Summaries and reports from plan + sentiment + trend outputs for
-            stakeholders. (F6 — P1)
+          <p className="text-slate-600 text-sm sm:text-base">
+            Summaries and reports from plan + sentiment + trend outputs for stakeholders.
           </p>
-          <span className="inline-block rounded-lg bg-amber-100 px-4 py-2 text-sm font-medium text-amber-800 mb-6">
-            Placeholder — Integration epic
-          </span>
-          <Link
-            href="/dashboard"
-            className="text-sm font-medium text-bagana-primary hover:text-bagana-accent"
-          >
-            View all features →
-          </Link>
-        </div>
+        </header>
+
+        <section className="flex-1 overflow-auto">
+          <ReportsDashboardView />
+        </section>
       </div>
     </PageLayout>
   );

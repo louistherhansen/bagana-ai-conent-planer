@@ -147,7 +147,13 @@ flowchart LR
    npm install
    npm run dev
    ```
-   Open [http://localhost:3000](http://localhost:3000). Go to `/chat` to use the AI content planning assistant.
+   Aplikasi berjalan di **http://localhost:3000**. Buka URL tersebut lalu `/chat` untuk asisten AI.
+
+   **Jika muncul peringatan "Port 3000 is in use"** (atau 3001, 3002, …): ada proses dev lain yang masih jalan. Tutup terminal lain yang menjalankan `npm run dev`, atau jalankan sekali saja:
+   ```bash
+   npm run dev:clean
+   ```
+   Script ini akan mengosongkan port 3000–3004 lalu menjalankan dev di port 3000.
 
 4. **Install Python (for CrewAI).** The chat API spawns the Python crew. Ensure Python 3.10+ is in PATH:
    ```bash
@@ -208,6 +214,27 @@ Response: `{ "status": "complete", "output": "...", "task_outputs": [...] }` or 
   This checks GET `/api/crew` (health) and POST `/api/crew` (chat). Optional: set `BASE_URL` if the app is not on `http://localhost:3000` (e.g. `BASE_URL=http://localhost:3001 node scripts/test-chat-roundtrip.mjs`).
 
 For verification steps, **known issues** (invalid/missing OPENAI_API_KEY, 120s timeout, no streaming), **defects**, **gaps**, and **future work** (E2E, WCAG, streaming), see [integration.md](project-context/2.build/integration.md) §7–8 and [qa.md](project-context/2.build/qa.md).
+
+### Verifikasi manual setelah build (cek tampilan UI)
+
+Setelah menjalankan `Remove-Item .next; npm run build`:
+
+1. Pastikan tidak ada proses lain yang memakai port 3000 (hentikan `npm run dev` atau `npm start` lain jika ada).
+2. Jalankan production server:
+   ```powershell
+   npm start
+   ```
+3. Buka **http://localhost:3000** di browser.
+4. Cek: Home (header BAGANA AI, nav, hero, tombol Open Chat, grid Key features, footer); Chat (welcome message, input, tombol Send); Dashboard (kartu fitur). Tampilan harus rapi (warna teal BAGANA, layout flex/grid, tidak polos).
+
+Jika tampilan masih berantakan: pastikan `tailwind.config.js` punya **safelist** untuk kelas layout dan BAGANA; `app/globals.css` punya **@layer base** untuk body dan link; lalu hapus `.next` dan jalankan `npm run build` lagi.
+
+**Jika UI tidak berjalan (halaman kosong / tidak tampil):** hapus cache build lalu jalankan ulang dev server:
+```powershell
+Remove-Item -Recurse -Force .next
+npm run dev
+```
+Lalu buka **http://localhost:3000** (hard refresh: Ctrl+Shift+R).
 
 ### AAMAD workflow
 

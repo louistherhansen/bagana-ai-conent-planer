@@ -3,3 +3,5 @@
 
 crewai>=0.28.0
 pyyaml>=6.0
+python-dotenv>=1.0.0
+psycopg2-binary>=2.9.0

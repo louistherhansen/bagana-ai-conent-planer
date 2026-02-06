@@ -3,14 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
+    "dev:clean": "npx kill-port 3000 3001 3002 3003 3004 && next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "validate-key": "node scripts/validate-openrouter-key.mjs"
   },
   "dependencies": {
     "@assistant-ui/react": "^0.12.3",
+    "@types/pg": "^8.16.0",
+    "dotenv": "^17.2.3",
     "next": "14.2.0",
+    "pg": "^8.18.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },
