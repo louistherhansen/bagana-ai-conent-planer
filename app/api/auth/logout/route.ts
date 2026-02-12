@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteSession } from "@/lib/auth";
 
+// Use Node.js runtime to support crypto and pg modules
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get("auth_token")?.value;

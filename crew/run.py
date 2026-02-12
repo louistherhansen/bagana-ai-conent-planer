@@ -390,6 +390,29 @@ def _step_callback(step: object) -> None:
             pass  # Ignore if log file write fails
 
 
+def _collect_token_usage(result: object, task_outputs: list) -> dict | None:
+    """
+    Try to extract token usage from CrewAI result for cost visibility.
+    CrewAI/LLM may expose usage in result.usage, result.tasks_output[].usage, or nested in raw.
+    Returns dict like { "input_tokens": N, "output_tokens": M } or None if not available.
+    """
+    total_in, total_out = 0, 0
+    # Result-level usage (some CrewAI versions)
+    usage = getattr(result, "usage", None)
+    if isinstance(usage, dict):
+        total_in += int(usage.get("input_tokens") or usage.get("prompt_tokens") or 0)
+        total_out += int(usage.get("output_tokens") or usage.get("completion_tokens") or 0)
+    # Per-task usage
+    for to in task_outputs or []:
+        u = getattr(to, "usage", None)
+        if isinstance(u, dict):
+            total_in += int(u.get("input_tokens") or u.get("prompt_tokens") or 0)
+            total_out += int(u.get("output_tokens") or u.get("completion_tokens") or 0)
+    if total_in > 0 or total_out > 0:
+        return {"input_tokens": total_in, "output_tokens": total_out}
+    return None
+
+
 def kickoff(inputs: dict | None = None) -> dict:
     """
     Run crew.kickoff(inputs). Returns structured result for API/Integration epic.
@@ -428,6 +451,13 @@ def kickoff(inputs: dict | None = None) -> dict:
     if not isinstance(raw_output, str):
         raw_output = str(raw_output) if raw_output is not None else ""
     task_outputs = getattr(result, "tasks_output", [])
+
+    # Optional: log token usage if CrewAI/LLM returned it (for cost visibility)
+    token_usage = _collect_token_usage(result, task_outputs)
+    if token_usage:
+        LOGS_DIR.mkdir(parents=True, exist_ok=True)
+        with open(LOGS_DIR / "trace.log", "a", encoding="utf-8") as f:
+            f.write(f"[{datetime.utcnow().isoformat()}Z] token_usage: {json.dumps(token_usage)}\n")
     
     # Map task outputs to include task name and agent info for frontend
     outputs_list = []
@@ -446,11 +476,14 @@ def kickoff(inputs: dict | None = None) -> dict:
             "output": str(getattr(to, "raw", to))
         })
 
-    return {
+    out = {
         "status": "complete",
         "output": raw_output,
         "task_outputs": outputs_list,
     }
+    if token_usage:
+        out["token_usage"] = token_usage
+    return out
 
 
 if __name__ == "__main__":

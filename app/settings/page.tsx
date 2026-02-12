@@ -1,5 +1,6 @@
 import { PageLayout } from "@/components/PageLayout";
 import { IconCog, IconSparkles } from "@/components/icons";
+import { UserManagement } from "@/components/UserManagement";
 import Link from "next/link";
 
 /**
@@ -27,6 +28,11 @@ export default function SettingsPage() {
         </header>
 
         <section className="space-y-6">
+          {/* User Management Section */}
+          <div className="rounded-xl border border-slate-200 bg-white p-6">
+            <UserManagement />
+          </div>
+
           <div className="rounded-xl border border-slate-200 bg-white p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-4">Subscription & Billing</h2>
             <p className="text-sm text-slate-600 mb-4">

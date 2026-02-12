@@ -1,9 +1,23 @@
 # Environment and secrets
 .env
+.env.*
+.env.example
 env.example
 .env.local
 .env.*.local
 *.pem
+
+# Production backups and packages
+production/backups/
+production/packages/
+*.sql
+*.tar
+*.tar.gz
+
+# Docker environment files
+docker-compose.override.yml
+.env.production
+.env.development
 
 # Python
 __pycache__/

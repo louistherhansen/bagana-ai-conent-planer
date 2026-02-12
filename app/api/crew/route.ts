@@ -6,6 +6,9 @@ import { config as loadEnv } from "dotenv";
 // Pastikan .env terbaca (path relatif ke project root = folder package.json / next.config)
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
 
+// Use Node.js runtime to support child_process.spawn and other Node.js modules
+export const runtime = 'nodejs';
+
 /**
  * Chat API endpoint for CrewAI crew.
  * SAD §4: Next.js API routes call Python CrewAI service layer.

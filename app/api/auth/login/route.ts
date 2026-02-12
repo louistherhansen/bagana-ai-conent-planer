@@ -6,6 +6,9 @@ import { query } from "@/lib/db";
 
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
 
+// Use Node.js runtime to support crypto and pg modules
+export const runtime = 'nodejs';
+
 const AUTH_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(255) PRIMARY KEY,
@@ -81,12 +84,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isValid = await verifyPassword(password, result.rows[0].password_hash);
+    const passwordHash = result.rows[0].password_hash;
+    const isValid = await verifyPassword(password, passwordHash);
     if (!isValid) {
       return NextResponse.json(
         { error: "Invalid email/username or password" },
         { status: 401 }
       );
+    }
+
+    // Auto-migrate SHA-256 passwords to bcrypt on successful login
+    // This ensures passwords are gradually migrated to bcrypt
+    // Skip migration in production if bcrypt is not properly configured
+    const isSha256Hash = /^[a-f0-9]{64}$/i.test(passwordHash);
+    if (isSha256Hash && process.env.NODE_ENV !== 'production') {
+      try {
+        const { hashPassword } = await import("@/lib/auth");
+        const newBcryptHash = await hashPassword(password);
+        await query(
+          "UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+          [newBcryptHash, user.id]
+        );
+        console.log(`Password migrated to bcrypt for user: ${user.email}`);
+      } catch (migrationError) {
+        // Log error but don't fail login - migration will happen on next login
+        console.error("Password migration error:", migrationError);
+      }
     }
 
     // Create session
@@ -115,12 +138,23 @@ export async function POST(request: NextRequest) {
     });
 
     // Set HTTP-only cookie
+    // Note: secure should be true only if using HTTPS
+    // For VPS without SSL, set secure to false
+    const isSecure = process.env.NODE_ENV === "production" && 
+                     (request.url.startsWith("https://") || process.env.FORCE_SECURE_COOKIES === "true");
+    
+    // Get domain from request URL (for VPS deployment)
+    const url = new URL(request.url);
+    const domain = url.hostname;
+    
     response.cookies.set("auth_token", session.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isSecure,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
+      // Don't set domain explicitly - let browser handle it
+      // This ensures cookie works for IP addresses and domains
     });
 
     return response;

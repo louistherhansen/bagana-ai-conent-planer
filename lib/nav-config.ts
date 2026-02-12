@@ -41,6 +41,7 @@ export const NAV_CONFIG: NavItem[] = [
       { href: "/review", label: "Review", order: 6, visible: true },
     ]
   },
+  { href: "/ai-charts", label: "AI Chart Services", order: 7, visible: true },
   { href: "/calendar", label: "Calendar", order: 9, visible: true },
   { href: "/subscription", label: "Pricing", order: 11, visible: true },
   { href: "/settings", label: "Settings", order: 12, visible: true },

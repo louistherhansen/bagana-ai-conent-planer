@@ -6,6 +6,9 @@ import { query } from "@/lib/db";
 // Load environment variables
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
 
+// Use Node.js runtime to support pg module
+export const runtime = 'nodejs';
+
 /**
  * Chat History API Endpoints
  * 

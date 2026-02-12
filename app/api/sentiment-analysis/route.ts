@@ -5,6 +5,9 @@ import { query } from "@/lib/db";
 
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
 
+// Use Node.js runtime to support pg module
+export const runtime = 'nodejs';
+
 /**
  * Sentiment Analysis API (results from sentiment_analyst CrewAI agent)
  *

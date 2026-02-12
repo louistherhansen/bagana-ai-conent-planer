@@ -17,7 +17,9 @@ export function AppNav({
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Initialize with items if provided, otherwise use dynamic items if dynamic mode is enabled
   const [navItems, setNavItems] = useState<NavItem[]>(() => {
@@ -55,9 +57,13 @@ export function AppNav({
       if (!isInsideDropdown && openDropdown) {
         setOpenDropdown(null);
       }
+      // Check if click is outside user menu
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setUserMenuOpen(false);
+      }
     };
 
-    if (openDropdown) {
+    if (openDropdown || userMenuOpen) {
       // Only add listener for mobile/click interactions
       // Hover interactions are handled by onMouseLeave
       document.addEventListener("mousedown", handleClickOutside);
@@ -66,7 +72,7 @@ export function AppNav({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [openDropdown]);
+  }, [openDropdown, userMenuOpen]);
 
   const isSubmenuActive = (item: NavItem): boolean => {
     if (!item.submenu) return false;
@@ -191,14 +197,44 @@ export function AppNav({
       <nav className="hidden lg:flex flex-wrap gap-4 xl:gap-6 items-center">
         {navLinks}
         {user ? (
-          <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
-            <span className="text-sm text-slate-600">{user.username}</span>
+          <div className="relative pl-4 border-l border-slate-200" ref={userMenuRef}>
             <button
-              onClick={logout}
-              className="text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 transition-colors"
             >
-              Logout
+              <span className="font-medium">{user.username || user.email}</span>
+              <svg
+                className={`w-4 h-4 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
+            {userMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg py-2 z-50">
+                <div className="px-4 py-2 text-sm font-medium text-slate-900 border-b border-slate-200">
+                  {user.username || user.email}
+                </div>
+                <Link
+                  href="/change-password"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="block px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                >
+                  Change Password
+                </Link>
+                <button
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    logout();
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <Link
@@ -245,9 +281,16 @@ export function AppNav({
               <div className="mt-4 pt-4 border-t border-slate-200">
                 {user ? (
                   <>
-                    <div className="px-4 py-2 text-sm text-slate-600">
-                      {user.username}
+                    <div className="px-4 py-2 text-sm font-medium text-slate-900 border-b border-slate-200 mb-2">
+                      {user.username || user.email}
                     </div>
+                    <Link
+                      href="/change-password"
+                      onClick={() => setMobileOpen(false)}
+                      className="block px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                    >
+                      Change Password
+                    </Link>
                     <button
                       onClick={() => {
                         logout();

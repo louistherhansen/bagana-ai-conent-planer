@@ -111,7 +111,7 @@ export function TrendBarChart({
                     x={barX + barWidth / 2}
                     y={barY - 4}
                     textAnchor="middle"
-                    dominantBaseline="baseline"
+                    dominantBaseline="text-before-edge"
                     className="text-xs font-semibold fill-slate-700"
                     style={{ fontSize: "11px" }}
                   >

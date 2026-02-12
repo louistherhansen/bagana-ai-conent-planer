@@ -1,0 +1,18 @@
+# Environment files
+.env
+.env.local
+.env.production
+
+# Package files
+packages/
+*.tar
+*.tar.gz
+
+# Logs
+*.log
+
+# SSL certificates
+ssl/
+*.pem
+*.key
+*.crt

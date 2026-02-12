@@ -6,6 +6,9 @@ import { query } from "@/lib/db";
 
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
 
+// Use Node.js runtime to support crypto and pg modules
+export const runtime = 'nodejs';
+
 const AUTH_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(255) PRIMARY KEY,

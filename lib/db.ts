@@ -11,20 +11,64 @@ import { Pool, QueryResult, QueryResultRow } from 'pg';
 let pool: Pool | null = null;
 
 /**
+ * Validate required environment variables
+ */
+function validateEnvVars(): void {
+  const required = ['DB_PASSWORD'];
+  const missing: string[] = [];
+
+  for (const key of required) {
+    if (!process.env[key] || process.env[key]!.trim() === '') {
+      missing.push(key);
+    }
+  }
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missing.join(', ')}\n` +
+      `Please set these variables in your .env file.\n` +
+      `See .env.example for reference.`
+    );
+  }
+}
+
+/**
  * Get or create database connection pool
  */
 function getPool(): Pool {
   if (!pool) {
-    pool = new Pool({
+    // Validate required environment variables
+    validateEnvVars();
+
+    const config: {
+      host: string;
+      port: number;
+      database: string;
+      user: string;
+      password: string;
+      max: number;
+      idleTimeoutMillis: number;
+      connectionTimeoutMillis: number;
+      ssl?: boolean | { rejectUnauthorized: boolean };
+    } = {
       host: process.env.DB_HOST || '127.0.0.1',
       port: parseInt(process.env.DB_PORT || '5432', 10),
       database: process.env.DB_NAME || 'bagana-ai-cp',
       user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || '123456',
+      password: process.env.DB_PASSWORD!, // Required - validated above
       max: 20, // Maximum pool size
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
-    });
+    };
+
+    // Enable SSL for production (if DB_SSL is set to true)
+    if (process.env.NODE_ENV === 'production' && process.env.DB_SSL === 'true') {
+      config.ssl = {
+        rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
+      };
+    }
+
+    pool = new Pool(config);
 
     // Handle pool errors
     pool.on('error', (err) => {

@@ -5,6 +5,9 @@ import { query } from "@/lib/db";
 
 loadEnv({ path: path.resolve(process.cwd(), ".env") });
 
+// Use Node.js runtime to support pg module
+export const runtime = 'nodejs';
+
 /**
  * Market Trends API (results from trend_researcher CrewAI agent)
  *

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { IconCheck } from "@/components/icons";
 
 export default function LoginPage() {
@@ -19,7 +20,10 @@ export default function LoginPage() {
       try {
         const res = await fetch("/api/auth/me");
         if (res.ok) {
-          router.push("/dashboard");
+          // Get redirect parameter from URL
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirectTo = urlParams.get("redirect") || "/dashboard";
+          router.push(redirectTo);
         }
       } catch (err) {
         // Not authenticated, stay on login page
@@ -49,9 +53,15 @@ export default function LoginPage() {
         throw new Error(data.error || "Failed to authenticate");
       }
 
-      // Redirect to dashboard
-      router.push("/dashboard");
-      router.refresh();
+      // Get redirect parameter from URL or default to dashboard
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get("redirect") || "/dashboard";
+      
+      // Small delay to ensure cookie is set
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Redirect to target page
+      window.location.href = redirectTo;
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -65,17 +75,36 @@ export default function LoginPage() {
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <div className="flex flex-col items-center mb-6">
-            <img
-              src="/bagana-ai-logo.png"
-              alt="BAGANA AI Logo"
-              className="h-24 w-auto mb-4"
-            />
+            {/* Logo dalam bentuk kotak yang menarik - diperbesar */}
+            <div className="relative group">
+              {/* Kotak utama dengan efek glow */}
+              <div className="w-36 h-36 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-xl bg-gradient-to-br from-bagana-primary/20 via-white to-bagana-muted/30 border-2 border-bagana-primary/40 shadow-lg shadow-bagana-primary/20 p-3 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-bagana-primary/30 group-hover:scale-105 group-hover:border-bagana-primary/60">
+                {/* Inner container dengan padding */}
+                <div className="w-full h-full rounded-lg bg-white/50 backdrop-blur-sm flex items-center justify-center overflow-hidden">
+                  <Image
+                    src="/bagana-ai-logo.png"
+                    alt="BAGANA AI Logo"
+                    width={128}
+                    height={128}
+                    className="object-contain w-full h-full p-2"
+                    priority
+                  />
+                </div>
+              </div>
+              {/* Efek glow animasi */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-bagana-primary/0 via-bagana-primary/10 to-bagana-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none blur-sm" />
+              {/* Corner accents */}
+              <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-bagana-primary/60 rounded-tl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-bagana-primary/60 rounded-tr-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-bagana-primary/60 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-bagana-primary/60 rounded-br-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">
-            Welcome Back
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">
+            AI Content Strategy Platform
           </h1>
-          <p className="text-slate-600">
-            Sign in to continue to your dashboard
+          <p className="text-sm sm:text-base text-slate-600">
+            Agentic AI untuk Strategi Konten KOL & Influencer
           </p>
         </div>
 
